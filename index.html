@@ -12,9 +12,8 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;position:relative;}
 .header{background:var(--blue);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(13,71,161,0.3);}
-.logo-box-ring{width:52px;height:52px;border-radius:50%;background:#ffffff;border:2px solid #ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0;}
-.logo-box-ring img{width:100%;height:100%;object-fit:cover;}
-.header-info h1{font-size:15px;font-weight:800;color:white;line-height:1.2;letter-spacing:0.5px;}
+.logo-img{width:52px;height:52px;border-radius:50%;object-fit:cover;background:white;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,0.25);flex-shrink:0;}
+.header-info h1{font-size:15px;font-weight:700;color:white;line-height:1.2;}
 .header-info p{font-size:10px;color:rgba(255,255,255,0.85);margin-top:1px;}
 .header-date{margin-left:auto;text-align:right;flex-shrink:0;}
 .header-date span{font-size:10px;color:rgba(255,255,255,0.7);display:block;}
@@ -81,17 +80,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 
 <div class="header">
-  <div class="logo-box-ring">
-    <svg width="48" height="48" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="48" fill="#1565C0" stroke="#0D47A1" stroke-width="4"/>
-      <circle cx="50" cy="50" r="40" fill="#E3F2FD"/>
-      <path d="M 28 65 C 28 45, 45 45, 45 30 L 55 30 C 55 50, 38 50, 38 65 Z" fill="#1565C0"/>
-      <path d="M 60 32 L 72 32 L 72 38 L 60 38 Z M 66 38 L 66 52 L 60 52 L 60 58 L 72 58 L 72 52 L 66 52 Z" fill="#1565C0"/>
-      <path d="M 66 64 C 66 68, 62 72, 66 76 C 70 72, 66 68, 66 64 Z" fill="#E65100"/>
-      <text x="50" y="24" font-family="'DM Sans',sans-serif" font-weight="900" font-size="10" fill="#0D47A1" text-anchor="middle">AS Y AS</text>
-      <text x="50" y="88" font-family="'DM Sans',sans-serif" font-weight="700" font-size="5.5" fill="#1565C0" text-anchor="middle">FLUIDOS</text>
-    </svg>
-  </div>
+  <img src="Logo%202.png" class="logo-img" alt="AS Y AS Logo" onerror="this.src='https://ui-avatars.com/api/?name=AS+AS&background=fff&color=1565C0&bold=true'">
   <div class="header-info">
     <h1>AS Y AS</h1>
     <p>Especialistas en Transporte de Fluidos</p>
@@ -120,7 +109,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="field">
     <label>Técnico Responsable <span class="req">*</span></label>
     <select id="tecnico-select" onchange="alSeleccionarTecnico()">
-      <option value="">Cargando técnicos...</option>
+      <option value="">Selecciona Técnico...</option>
     </select>
   </div>
   
@@ -138,13 +127,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field">
       <label>Cliente <span class="req">*</span></label>
       <select id="cliente-select" onchange="alSeleccionarCliente()">
-        <option value="">Cargando clientes...</option>
+        <option value="">Selecciona Cliente...</option>
       </select>
     </div>
 
     <div class="field" id="field-local-mcd" style="display:none">
-      <label>Local (Escribe iniciales o nombre) <span class="req">*</span></label>
-      <input type="text" id="local-input-mcd" list="lista-locales-mcd" placeholder="Ej: CMH, Eyzaguirre, Puente Alto..." oninput="alEscribirLocalMcd()">
+      <label>Local (Escribe sigla o nombre, ej: AHU, CMH, EYZ) <span class="req">*</span></label>
+      <input type="text" id="local-input-mcd" list="lista-locales-mcd" placeholder="Escribe para buscar local..." oninput="alEscribirLocalMcd()">
       <datalist id="lista-locales-mcd"></datalist>
       <input type="hidden" id="local-value">
       <input type="hidden" id="local-sigla">
@@ -204,20 +193,25 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec";
 
-// Datos locales de respaldo instantáneo
 let bdTecnicos = [
   { nombre: "CARLOS GONZALEZ", pin: "1994", codigo: "CG" },
   { nombre: "CARLOS PRUEBA", pin: "1994", codigo: "CP" },
   { nombre: "BENJAMIN AYUDANTE", pin: "2526", codigo: "BA" }
 ];
 let bdClientes = [{ nombre: "MCDONALDS" }, { nombre: "OTRO" }];
+
+// Lista extendida de locales de contingencia para disponibilidad instantánea
 let bdLocales = [
+  { sigla: "AHU", nombre: "AHUMADA" },
   { sigla: "CMH", nombre: "CAMILO HENRÍQUEZ" },
   { sigla: "EYZ", nombre: "EYZAGUIRRE" },
   { sigla: "MPT", nombre: "MALL PLAZA TOBALABA" },
   { sigla: "PTA", nombre: "PUENTE ALTO" },
   { sigla: "SCL", nombre: "SANTIAGO CENTRO" },
-  { sigla: "LCS", nombre: "LAS CONDES" }
+  { sigla: "LCS", nombre: "LAS CONDES" },
+  { sigla: "PRO", nombre: "PROVIDENCIA" },
+  { sigla: "MAI", nombre: "MAIPÚ" },
+  { sigla: "FLA", nombre: "FLORIDA" }
 ];
 
 let paginaActual = 1;
@@ -249,7 +243,7 @@ function cargarScriptJSONP(params, callback) {
       if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
       callback(null);
     }
-  }, 1500);
+  }, 2000);
 
   window[cbName] = function(data) {
     if(!handled) {
@@ -281,12 +275,10 @@ function cargarScriptJSONP(params, callback) {
 function inicializarDatos() {
   horaInicioVisita = new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
   
-  // Renderizar inmediato con fallback
   poblarTecnicos();
   poblarClientes();
   poblarLocalesDatalist();
 
-  // Intentar actualizar desde Sheets si responde rápido
   cargarScriptJSONP('action=getTecnicos', function(res) {
     if(res && res.tecnicos && res.tecnicos.length > 0) {
       bdTecnicos = res.tecnicos;
@@ -640,12 +632,12 @@ function ejecutarRegistroBackend() {
   cargarScriptJSONP(`action=registrarVisitaJSONP&payload=${jsonStr}`, function(res) {
     if(res && res.ok) {
       correlativoGenerado = res.correlativo;
-      document.getElementById('success-id-msg').textContent = `Visita registrada bajo el correlativo ${res.correlativo}.`;
+      document.getElementById('success-id-msg').textContent = `Visita registrada bajo correlativo ${res.correlativo}.`;
     } else {
       const tecObj = bdTecnicos.find(t => t.nombre === tec);
       const pref = tecObj && tecObj.codigo ? tecObj.codigo : "REG";
       correlativoGenerado = pref + "-" + Math.floor(1000 + Math.random() * 9000);
-      document.getElementById('success-id-msg').textContent = `Visita lista under ${correlativoGenerado}.`;
+      document.getElementById('success-id-msg').textContent = `Visita guardada bajo ${correlativoGenerado}.`;
     }
     document.getElementById('steps-nav').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';

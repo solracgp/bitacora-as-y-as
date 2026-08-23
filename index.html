@@ -1,29 +1,511 @@
-<script>
-  // Función para obtener/mostrar el correlativo estimado en el Paso 3 (Resumen)
-  function generarVistaPreviaCorrelativo() {
-    const tecnicoSelect = document.getElementById("selectTecnico") ? document.getElementById("selectTecnico").value : "";
-    let prefijo = "REG";
-    const tecLower = tecnicoSelect.toLowerCase();
-
-    if (tecLower.includes("carlos gonzalez") || tecLower.includes("carlos gonzález")) {
-      prefijo = "CG";
-    } else if (tecLower.includes("carlos prueba")) {
-      prefijo = "CP";
-    } else if (tecLower.includes("benjamin") || tecLower.includes("benjamín")) {
-      prefijo = "BA";
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Visita – AS y AS</title>
+  <style>
+    :root {
+      --primary: #004a99;
+      --accent: #d9230f;
+      --bg: #f4f6f9;
+      --card-bg: #ffffff;
+      --text: #333333;
+      --border: #cccccc;
     }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 15px;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: var(--card-bg);
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    }
+    .header {
+      text-align: center;
+      border-bottom: 2px solid var(--primary);
+      padding-bottom: 15px;
+      margin-bottom: 20px;
+    }
+    .header img {
+      max-width: 180px;
+      height: auto;
+      margin-bottom: 10px;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 1.4rem;
+      color: var(--primary);
+    }
+    .header p {
+      margin: 5px 0 0;
+      font-size: 0.9rem;
+      color: #666;
+    }
+    .step-card {
+      background: #fafafa;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+    }
+    .step-title {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--primary);
+      margin-bottom: 12px;
+      border-bottom: 1px solid #e0e0e0;
+      padding-bottom: 5px;
+    }
+    .form-group {
+      margin-bottom: 15px;
+    }
+    label {
+      display: block;
+      font-weight: 600;
+      font-size: 0.85rem;
+      margin-bottom: 5px;
+    }
+    input, select, textarea {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      box-sizing: border-box;
+      font-size: 0.95rem;
+    }
+    input:disabled, select:disabled {
+      background-color: #e9ecef;
+      cursor: not-allowed;
+    }
+    .hallazgo-item {
+      background: #ffffff;
+      border: 1px dashed var(--primary);
+      padding: 12px;
+      border-radius: 6px;
+      margin-bottom: 10px;
+      position: relative;
+    }
+    .btn {
+      display: inline-block;
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 1rem;
+      cursor: pointer;
+      text-align: center;
+      box-sizing: border-box;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-accent { background: var(--accent); color: white; margin-top: 10px; }
+    .btn-whatsapp { background: #25D366; color: white; margin-top: 10px; text-decoration: none; }
+    .btn-secondary { background: #6c757d; color: white; margin-bottom: 10px; }
+    .hidden { display: none; }
+    .preview-box {
+      background: #eef4fc;
+      border: 1px solid #b8daff;
+      padding: 12px;
+      border-radius: 6px;
+      white-space: pre-wrap;
+      font-family: monospace;
+      font-size: 0.85rem;
+      margin-bottom: 15px;
+    }
+    .img-preview {
+      max-width: 100%;
+      height: 100px;
+      object-fit: cover;
+      margin-top: 8px;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
 
-    // Muestra en la interfaz un correlativo temporal o proyectado
-    const elementoCorrelativo = document.getElementById("lblCorrelativo");
-    if (elementoCorrelativo) {
-      elementoCorrelativo.innerText = prefijo + "-REGISTRANDO...";
+<div class="container">
+  <div class="header">
+    <img src="Logo 2.png" alt="Logo AS y AS" onerror="this.style.display='none'">
+    <h1>AS Y AS</h1>
+    <p>Especialistas en Transporte de Fluidos</p>
+  </div>
+
+  <!-- FORMULARIO POST DIRIGIDO AL IFRAME OCULTO -->
+  <form id="formBitacora" action="https://script.google.com/macros/s/AKfycbwqQxIvhR_e1e12iIqI_1R_G1fO2fU_S_EXEMPLE/exec" method="POST" target="iframe_oculto" onsubmit="return prepararEnvio(event)">
+    <input type="hidden" name="payload" id="inputPayloadHidden">
+
+    <!-- PASO 1: VALIDACIÓN Y UBICACIÓN -->
+    <div class="step-card">
+      <div class="step-title">Paso 1: Validación y Ubicación</div>
+      
+      <div class="form-group">
+        <label for="selectTecnico">Técnico (*)</label>
+        <select id="selectTecnico" onchange="verificarPin()">
+          <option value="">-- Seleccionar Técnico --</option>
+          <option value="Carlos González">Carlos González</option>
+          <option value="Carlos Prueba">Carlos Prueba</option>
+          <option value="Benjamín Ayudante">Benjamín Ayudante</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="inputPin">PIN de Acceso (*)</label>
+        <input type="password" id="inputPin" maxlength="4" placeholder="Ingrese PIN de 4 dígitos" oninput="verificarPin()">
+      </div>
+
+      <div id="bloqueBloqueado" class="hidden">
+        <div class="form-group">
+          <label for="selectCliente">Cliente (*)</label>
+          <select id="selectCliente" onchange="gestionarCliente()">
+            <option value="MCDONALDS">MCDONALDS</option>
+            <option value="OTRO">OTRO CLIENTE</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="inputLocal">Local / Ubicación (*)</label>
+          <input type="text" id="inputLocal" list="listaLocales" placeholder="Escriba sigla o nombre del local..." oninput="autoAsignarSigla()">
+          <datalist id="listaLocales"></datalist>
+        </div>
+
+        <div class="form-group">
+          <label for="inputSigla">Sigla Local</label>
+          <input type="text" id="inputSigla" readonly placeholder="Se asigna automáticamente">
+        </div>
+
+        <div class="form-group">
+          <label for="selectTipoVisita">Tipo de Visita (*)</label>
+          <select id="selectTipoVisita" onchange="actualizarResumen()">
+            <option value="Mantención">Mantención</option>
+            <option value="Emergencia">Emergencia</option>
+            <option value="Inspección Técnica">Inspección Técnica</option>
+            <option value="Instalación / Montaje">Instalación / Montaje</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <div class="form-group" style="flex: 1;">
+            <label for="horaInicio">Hora Inicio</label>
+            <input type="time" id="horaInicio" onchange="actualizarResumen()">
+          </div>
+          <div class="form-group" style="flex: 1;">
+            <label for="horaTermino">Hora Término</label>
+            <input type="time" id="horaTermino" onchange="actualizarResumen()">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PASO 2: HALLAZGOS -->
+    <div id="paso2" class="step-card hidden">
+      <div class="step-title">Paso 2: Hallazgos e Inspección</div>
+      
+      <div id="contenedorHallazgos"></div>
+
+      <button type="button" class="btn btn-secondary" onclick="agregarHallazgo()">+ Agregar Hallazgo</button>
+      
+      <div class="form-group" style="margin-top: 15px;">
+        <label for="inputObservaciones">Observaciones Generales</label>
+        <textarea id="inputObservaciones" rows="3" placeholder="Comentarios adicionales de la visita..." oninput="actualizarResumen()"></textarea>
+      </div>
+    </div>
+
+    <!-- PASO 3: RESUMEN Y ENVÍO -->
+    <div id="paso3" class="step-card hidden">
+      <div class="step-title">Paso 3: Resumen y Confirmación</div>
+      
+      <label>Vista previa del Reporte:</label>
+      <div id="boxPreview" class="preview-box">Cargando resumen...</div>
+
+      <button type="submit" id="btnEnviar" class="btn btn-primary">Registrar en Planilla</button>
+      <a id="btnWhatsApp" href="#" target="_blank" class="btn btn-whatsapp hidden">Compartir por WhatsApp</a>
+    </div>
+  </form>
+</div>
+
+<!-- IFRAME OCULTO PARA RECEPCIÓN DE POST SIN CORS -->
+<iframe name="iframe_oculto" id="iframe_oculto" style="display:none;" onload="alCargarIframe()"></iframe>
+
+<script>
+  // LISTA MCDONALD'S COMPLETA (88+ LOCALES)
+  const LOCALES_MCD = [
+    {sigla: "AHU", nombre: "AHUMADA"}, {sigla: "LPI", nombre: "LA PINTANA"}, {sigla: "ELB", nombre: "EL BOSQUE"},
+    {sigla: "PDC", nombre: "PEDRO DE VALDIVIA"}, {sigla: "GRA", nombre: "GRAN AVENIDA"}, {sigla: "DVL", nombre: "DOS VÍAS LO PRADO"},
+    {sigla: "CSD", nombre: "CASA DE MODAS"}, {sigla: "PAD", nombre: "PADRE HURTADO"}, {sigla: "ISL", nombre: "ISLA DE MAIPO"},
+    {sigla: "ALP", nombre: "ALGECIRAS PLAZA"}, {sigla: "LAB", nombre: "LA BANDERA"}, {sigla: "VES", nombre: "VESPUCIO NORTE"},
+    {sigla: "SMA", nombre: "SANTA MARTA"}, {sigla: "COP", nombre: "COPIAPÓ"}, {sigla: "LSE", nombre: "LA SERENA"},
+    {sigla: "COQ", nombre: "COQUIMBO"}, {sigla: "OVA", nombre: "OVALLE"}, {sigla: "LAK", nombre: "LOS ÁNGELES"},
+    {sigla: "ARI", nombre: "ARICA"}, {sigla: "CAL", nombre: "CALAMA"}, {sigla: "VAL2", nombre: "VALDIVIA"},
+    {sigla: "PUC", nombre: "PUCÓN"}, {sigla: "VOL", nombre: "VOLCÁN"}, {sigla: "CAS", nombre: "CASAS VIEJAS"},
+    {sigla: "PVE", nombre: "PLAZA VESPUCIO"}, {sigla: "VVA", nombre: "VICENTE VALDÉS"}, {sigla: "DOV", nombre: "DIAGONAL ORIENTE VESPUCIO"},
+    {sigla: "FLC", nombre: "FLORIDA CENTER"}, {sigla: "LLR", nombre: "LIDER LA REINA"}, {sigla: "EKV", nombre: "LIDER VESPUCIO"},
+    {sigla: "MTO", nombre: "MACUL LAS TORRES"}, {sigla: "MPE", nombre: "MALL PLAZA EGAÑA"}, {sigla: "AIN", nombre: "AEROPUERTO INTERNACIONAL"},
+    {sigla: "ANP", nombre: "AEROPUERTO NACIONAL"}, {sigla: "ECT", nombre: "ESTACIÓN CENTRAL"}, {sigla: "PZA", nombre: "PLAZA ALAMEDA"},
+    {sigla: "REP", nombre: "REPÚBLICA"}, {sigla: "CAR", nombre: "SHELL CAREN RUTA 68"}, {sigla: "VLC", nombre: "VALLE LO CAMPINO"},
+    {sigla: "BIL", nombre: "BILBAO"}, {sigla: "PCT", nombre: "PATIO CENTRO"}, {sigla: "PTE", nombre: "PATIO PUENTE"},
+    {sigla: "PZI", nombre: "PLAZA ITALIA"}, {sigla: "SAR", nombre: "SANTA ROSA"}, {sigla: "BVT", nombre: "BELLAVISTA"},
+    {sigla: "PTB", nombre: "PATIO BELLAVISTA"}, {sigla: "PR2", nombre: "PROVIDENCIA 2"}, {sigla: "PVT", nombre: "PROVIDENCIA 3"},
+    {sigla: "SPA", nombre: "SAN PASCUAL"}, {sigla: "TOB", nombre: "TOBALABA"}, {sigla: "4PS", nombre: "4 PONIENTE SILVA CARVALLO"},
+    {sigla: "EBZ", nombre: "EL ABRAZO"}, {sigla: "GVE", nombre: "GENERAL VELÁSQUEZ"}, {sigla: "MA1", nombre: "MAIPÚ FOOD COURT"},
+    {sigla: "MMI", nombre: "MAIPÚ MILA"}, {sigla: "ALC", nombre: "ALTO LAS CONDES"}, {sigla: "CGA", nombre: "CANTA GALLO"},
+    {sigla: "KNN", nombre: "KENNEDY"}, {sigla: "DEH", nombre: "LA DEHESA"}, {sigla: "MPA", nombre: "MALL PARQUE ARAUCO"},
+    {sigla: "ROT", nombre: "ROTONDA ATENAS"}, {sigla: "MPS", nombre: "MALL PLAZA SUR"}, {sigla: "PNF", nombre: "PEÑAFLOR"},
+    {sigla: "IDE", nombre: "INDEPENDENCIA"}, {sigla: "MAQ", nombre: "MALL ARAUCO QUILICURA"}, {sigla: "MBI", nombre: "MALL BARRIO INDEPENDENCIA"},
+    {sigla: "EKI", nombre: "MALL PLAZA NORTE"}, {sigla: "PFV", nombre: "PEDRO FONTOVA"}, {sigla: "PRJ", nombre: "PIEDRA ROJA"},
+    {sigla: "SRB", nombre: "SANTA ROSA BIO BIO"}, {sigla: "ESB", nombre: "ESTACIÓN DE BUSES"}, {sigla: "SFD", nombre: "SAN FERNANDO"},
+    {sigla: "SFM", nombre: "SAN FRANCISCO MOSTAZAL"}, {sigla: "TCN", nombre: "TALCA"}, {sigla: "COL", nombre: "COLINA"},
+    {sigla: "CLA", nombre: "CHILLÁN AVENIDA ARGENTINA"}, {sigla: "LAN", nombre: "LOS ÁNGELES"}, {sigla: "MPB", nombre: "MALL PLAZA BIO BIO"},
+    {sigla: "PTR", nombre: "PLAZA TRÉBOL"}, {sigla: "POT", nombre: "PORTAL TEMUCO"}, {sigla: "SCH", nombre: "SAN CARLOS"},
+    {sigla: "SPP", nombre: "SAN PEDRO DE LA PAZ"}, {sigla: "VDI", nombre: "VALDIVIA"}, {sigla: "AN5", nombre: "ANTOFAGASTA 5"},
+    {sigla: "AN3", nombre: "ANTOFAGASTA CENTRO"}, {sigla: "AN4", nombre: "ANTOFAGASTA MALL"}, {sigla: "IQI", nombre: "IQUIQUE"},
+    {sigla: "IQS", nombre: "IQUIQUE SUR"}, {sigla: "CMA", nombre: "CALAMA"}, {sigla: "MCQ", nombre: "MALL VIVO COQUIMBO"},
+    {sigla: "SDO", nombre: "SANTO DOMINGO"}, {sigla: "SBA", nombre: "SERENA BALMACEDA"}, {sigla: "STB", nombre: "SERENA TIERRAS BLANCAS"},
+    {sigla: "CMH", nombre: "CAMILO HENRÍQUEZ"}, {sigla: "EYZ", nombre: "EYZAGUIRRE"}, {sigla: "MPT", nombre: "MALL PLAZA TOBALABA"},
+    {sigla: "PTA", nombre: "PUENTE ALTO"}, {sigla: "SCL", nombre: "SANTIAGO CENTRO"}, {sigla: "LCS", nombre: "LAS CONDES"}
+  ];
+
+  const PINS_VALIDOS = { "Carlos González": "1994", "Carlos Prueba": "2526", "Benjamín Ayudante": "1994" };
+  let hallazgoCount = 0;
+  let enviando = false;
+
+  window.onload = function() {
+    cargarDataList();
+    // Establecer hora por defecto
+    const now = new Date();
+    document.getElementById("horaInicio").value = now.toTimeString().substring(0,5);
+  };
+
+  function cargarDataList() {
+    const dl = document.getElementById("listaLocales");
+    dl.innerHTML = "";
+    LOCALES_MCD.forEach(loc => {
+      let opt = document.createElement("option");
+      opt.value = `${loc.sigla} ${loc.nombre}`;
+      dl.appendChild(opt);
+    });
+  }
+
+  function verificarPin() {
+    const tec = document.getElementById("selectTecnico").value;
+    const pin = document.getElementById("inputPin").value;
+    const bloque = document.getElementById("bloqueBloqueado");
+    const paso2 = document.getElementById("paso2");
+    const paso3 = document.getElementById("paso3");
+
+    if (tec && PINS_VALIDOS[tec] === pin) {
+      bloque.classList.remove("hidden");
+      paso2.classList.remove("hidden");
+      paso3.classList.remove("hidden");
+      if (document.querySelectorAll(".hallazgo-item").length === 0) {
+        agregarHallazgo();
+      }
+      actualizarResumen();
+    } else {
+      bloque.classList.add("hidden");
+      paso2.classList.add("hidden");
+      paso3.classList.add("hidden");
     }
   }
 
-  // Ejecutar al enviar el formulario
-  function alEnviarFormulario() {
-    generarVistaPreviaCorrelativo();
-    document.getElementById("btnEnviar").disabled = true;
-    document.getElementById("btnEnviar").innerText = "Guardando en Planilla...";
+  function gestionarCliente() {
+    const cli = document.getElementById("selectCliente").value;
+    const inputLocal = document.getElementById("inputLocal");
+    inputLocal.value = "";
+    document.getElementById("inputSigla").value = "";
+    
+    if (cli === "MCDONALDS") {
+      inputLocal.setAttribute("list", "listaLocales");
+    } else {
+      inputLocal.removeAttribute("list");
+    }
+    actualizarResumen();
+  }
+
+  function autoAsignarSigla() {
+    const val = document.getElementById("inputLocal").value.toUpperCase();
+    const siglaInput = document.getElementById("inputSigla");
+    
+    const encontrado = LOCALES_MCD.find(loc => 
+      val.startsWith(loc.sigla) || val.includes(loc.nombre) || val === `${loc.sigla} ${loc.nombre}`
+    );
+
+    if (encontrado) {
+      siglaInput.value = encontrado.sigla;
+    } else {
+      siglaInput.value = "GEN";
+    }
+    actualizarResumen();
+  }
+
+  function agregarHallazgo() {
+    hallazgoCount++;
+    const container = document.getElementById("contenedorHallazgos");
+    const div = document.createElement("div");
+    div.className = "hallazgo-item";
+    div.id = `hallazgo_${hallazgoCount}`;
+    
+    div.innerHTML = `
+      <div style="font-weight:bold; margin-bottom:8px;">Hallazgo #${hallazgoCount}</div>
+      <div class="form-group">
+        <label>Área / Equipo (*)</label>
+        <input type="text" class="h-area" placeholder="Ej: Sala de bombas / Bomba #1" oninput="actualizarResumen()">
+      </div>
+      <div class="form-group">
+        <label>Descripción del Problema (*)</label>
+        <textarea class="h-desc" rows="2" placeholder="Detalle la falla..." oninput="actualizarResumen()"></textarea>
+      </div>
+      <div style="display:flex; gap:10px;">
+        <div class="form-group" style="flex:1;">
+          <label>Urgencia</label>
+          <select class="h-urgencia" onchange="actualizarResumen()">
+            <option value="Baja">Baja</option>
+            <option value="Media">Media</option>
+            <option value="Alta" selected>Alta</option>
+          </select>
+        </div>
+        <div class="form-group" style="flex:1;">
+          <label>Cotización</label>
+          <select class="h-cotizacion" onchange="actualizarResumen()">
+            <option value="Si">Sí</option>
+            <option value="No">No</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Foto Adjunta</label>
+        <input type="file" accept="image/*" capture="environment" class="h-foto" onchange="previewImagen(this)">
+        <img class="img-preview hidden" src="">
+      </div>
+    `;
+    container.appendChild(div);
+    actualizarResumen();
+  }
+
+  function previewImagen(input) {
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      const imgElem = input.parentElement.querySelector(".img-preview");
+      reader.onload = function(e) {
+        imgElem.src = e.target.result;
+        imgElem.classList.remove("hidden");
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  function obtenerPrefijoTecnico(tecnico) {
+    let tec = tecnico.toLowerCase();
+    if (tec.includes("carlos gonzález") || tec.includes("carlos gonzalez")) return "CG";
+    if (tec.includes("carlos prueba")) return "CP";
+    if (tec.includes("benjamín") || tec.includes("benjamin")) return "BA";
+    return "REG";
+  }
+
+  function actualizarResumen() {
+    const tec = document.getElementById("selectTecnico").value || "---";
+    const cli = document.getElementById("selectCliente").value || "---";
+    const loc = document.getElementById("inputLocal").value || "---";
+    const tipo = document.getElementById("selectTipoVisita").value || "---";
+    const prefijo = obtenerPrefijoTecnico(tec);
+    
+    const now = new Date();
+    const horaFormateada = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: true });
+
+    let hallazgosTexto = "";
+    const items = document.querySelectorAll(".hallazgo-item");
+    items.forEach((item, index) => {
+      const area = item.querySelector(".h-area").value || "Sin especificar";
+      const desc = item.querySelector(".h-desc").value || "Sin descripción";
+      const urg = item.querySelector(".h-urgencia").value;
+      const cot = item.querySelector(".h-cotizacion").value;
+
+      hallazgosTexto += `\n#${index + 1} [${area}]: ${desc}\n• Urgencia: ${urg}\n• Cotización: ${cot}\n`;
+    });
+
+    const reporteTexto = 
+`REGISTRO DE VISITA TÉCNICA
+--------------------------------------
+N° Registro: ${prefijo}-PROCESANDO...
+Técnico: ${tec.toUpperCase()}
+Cliente: ${cli}
+Ubicación: ${loc.toUpperCase()}
+Tipo Visita: ${tipo}
+Hora Reporte: ${horaFormateada} hrs
+
+HALLAZGOS:
+${hallazgosTexto}
+Observaciones: ${document.getElementById("inputObservaciones").value || "Ninguna"}`;
+
+    document.getElementById("boxPreview").innerText = reporteTexto;
+
+    // Actualizar botón de WhatsApp
+    const btnWA = document.getElementById("btnWhatsApp");
+    btnWA.href = `https://wa.me/?text=${encodeURIComponent(reporteTexto)}`;
+    btnWA.classList.remove("hidden");
+  }
+
+  function prepararEnvio(event) {
+    if (enviando) return false;
+
+    const tec = document.getElementById("selectTecnico").value;
+    const loc = document.getElementById("inputLocal").value;
+    
+    if (!tec || !loc) {
+      alert("Por favor complete los campos obligatorios (*)");
+      return false;
+    }
+
+    // Recopilar fotos en Base64
+    const fotosBase64 = [];
+    const imgs = document.querySelectorAll(".img-preview");
+    imgs.forEach(img => {
+      if (!img.classList.contains("hidden") && img.src.startsWith("data:image")) {
+        fotosBase64.push(img.src);
+      }
+    });
+
+    // Construir objeto JSON para el backend
+    const payloadData = {
+      tecnico: tec,
+      cliente: document.getElementById("selectCliente").value,
+      local: loc,
+      sigla: document.getElementById("inputSigla").value,
+      tipoVisita: document.getElementById("selectTipoVisita").value,
+      horaInicio: document.getElementById("horaInicio").value,
+      horaTermino: document.getElementById("horaTermino").value,
+      resumenHallazgos: document.getElementById("boxPreview").innerText,
+      observaciones: document.getElementById("inputObservaciones").value,
+      fotos: fotosBase64
+    };
+
+    document.getElementById("inputPayloadHidden").value = JSON.stringify(payloadData);
+    
+    enviando = true;
+    const btn = document.getElementById("btnEnviar");
+    btn.disabled = true;
+    btn.innerText = "Registrando en Planilla...";
+    
+    return true;
+  }
+
+  function alCargarIframe() {
+    if (enviando) {
+      enviando = false;
+      const btn = document.getElementById("btnEnviar");
+      btn.innerText = "¡Registro Guardado!";
+      btn.style.background = "#28a745";
+      alert("La visita ha sido registrada exitosamente en Google Sheets.");
+    }
   }
 </script>
+
+</body>
+</html>

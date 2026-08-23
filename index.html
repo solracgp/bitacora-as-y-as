@@ -11,12 +11,10 @@
 :root{--blue:#1565C0;--bluedark:#0D47A1;--blue3:#E3F2FD;--blue4:#BBDEFB;--green:#2E7D32;--green2:#E8F5E9;--orange:#E65100;--orange2:#FFF3E0;--red:#C62828;--red2:#FFEBEE;--text:#1C2B3A;--muted:#607D8B;--border:#CFD8DC;--bg:#F4F7FA;--radius:14px;--shadow:0 2px 16px rgba(21,101,192,0.10);}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;position:relative;}
-.header{background:var(--blue);padding:16px 20px 14px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(13,71,161,0.3);}
-.logo-box{width:46px;height:46px;background:white;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
-.logo-box .brand{font-size:12px;font-weight:900;color:var(--blue);line-height:1;}
-.logo-box .subbrand{font-size:7px;font-weight:700;color:var(--orange);letter-spacing:0.5px;margin-top:2px;}
-.header-info h1{font-size:16px;font-weight:700;color:white;line-height:1.2;}
-.header-info p{font-size:11px;color:rgba(255,255,255,0.8);margin-top:1px;}
+.header{background:var(--blue);padding:12px 16px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(13,71,161,0.3);}
+.logo-img{width:48px;height:48px;border-radius:50%;object-fit:cover;background:white;border:2px solid white;box-shadow:0 2px 6px rgba(0,0,0,0.2);flex-shrink:0;}
+.header-info h1{font-size:15px;font-weight:700;color:white;line-height:1.2;}
+.header-info p{font-size:10px;color:rgba(255,255,255,0.85);margin-top:1px;}
 .header-date{margin-left:auto;text-align:right;flex-shrink:0;}
 .header-date span{font-size:10px;color:rgba(255,255,255,0.7);display:block;}
 .header-date strong{font-size:12px;color:white;font-weight:600;}
@@ -62,9 +60,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .field-locked{opacity:0.45;pointer-events:none;user-select:none;}
 .toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#323232;color:white;padding:12px 20px;border-radius:24px;font-size:13px;font-weight:500;opacity:0;pointer-events:none;transition:opacity 0.3s;white-space:nowrap;z-index:300;}
 .toast.show{opacity:1;}
-.cliente-dropdown{display:none;position:absolute;top:100%;left:0;right:0;background:white;border:1.5px solid var(--blue);border-radius:var(--radius);max-height:200px;overflow-y:auto;z-index:999;box-shadow:0 4px 16px rgba(21,101,192,0.15);}
-.cliente-item{padding:11px 14px;font-size:13px;cursor:pointer;border-bottom:1px solid var(--bg);}
-.cliente-item:hover{background:var(--blue3);}
 .hallazgo-card{background:white;border:1.5px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px;box-shadow:var(--shadow);}
 .hallazgo-card-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
 .hallazgo-num{font-size:12px;font-weight:700;color:var(--blue);text-transform:uppercase;}
@@ -85,13 +80,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 
 <div class="header">
-  <div class="logo-box">
-    <span class="brand">AS&AS</span>
-    <span class="subbrand">BOMBAS</span>
-  </div>
+  <img src="https://i.ibb.co/6y4G1vX/Logo-2.png" class="logo-img" alt="AS Y AS Logo" onerror="this.src='https://ui-avatars.com/api/?name=AS+AS&background=fff&color=1565C0&bold=true'">
   <div class="header-info">
-    <h1>Registro de Visita</h1>
-    <p>Soluciones en Bombas</p>
+    <h1>AS Y AS</h1>
+    <p>Especialistas en Transporte de Fluidos</p>
   </div>
   <div class="header-date">
     <span id="hdr-dia">--- -- ---</span>
@@ -141,15 +133,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
     <div class="field" id="field-local-mcd" style="display:none">
       <label>Local <span class="req">*</span></label>
-      <input type="text" id="local-search" placeholder="Buscar local por nombre o sigla..." onkeyup="filtrarLocales()" onfocus="mostrarDropdownLocales()">
-      <div class="cliente-dropdown" id="local-dropdown"></div>
+      <select id="local-select-mcd" onchange="alCambiarLocalSelect()">
+        <option value="">Selecciona un local...</option>
+      </select>
       <input type="hidden" id="local-value">
       <input type="hidden" id="local-sigla">
     </div>
 
     <div class="field" id="field-local-ext" style="display:none">
       <label>Nombre Local / Dirección <span class="req">*</span></label>
-      <input type="text" id="local-ext" placeholder="Ingrese nombre del local externo">
+      <input type="text" id="local-ext" placeholder="Ingrese nombre del local o dirección">
     </div>
 
     <div class="field">
@@ -207,7 +200,14 @@ let bdTecnicos = [
   { nombre: "BENJAMIN AYUDANTE", pin: "2526", codigo: "BA" }
 ];
 let bdClientes = [{ nombre: "MCDONALDS" }, { nombre: "OTRO" }];
-let bdLocales = [];
+let bdLocales = [
+  { sigla: "CMH", nombre: "CAMILO HENRÍQUEZ" },
+  { sigla: "EYZ", nombre: "EYZAGUIRRE" },
+  { sigla: "MPT", nombre: "MALL PLAZA TOBALABA" },
+  { sigla: "PTA", nombre: "PUENTE ALTO" },
+  { sigla: "SCL", nombre: "SANTIAGO CENTRO" },
+  { sigla: "LCS", nombre: "LAS CONDES" }
+];
 
 let paginaActual = 1;
 let pinVerificado = false;
@@ -230,6 +230,7 @@ function inicializarDatos() {
   horaInicioVisita = new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
   poblarTecnicos();
   poblarClientes();
+  poblarLocalesSelect();
 }
 
 function poblarTecnicos() {
@@ -246,6 +247,26 @@ function poblarClientes() {
   bdClientes.forEach(c => {
     sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
   });
+}
+
+function poblarLocalesSelect() {
+  const sel = document.getElementById('local-select-mcd');
+  sel.innerHTML = '<option value="">Selecciona un local...</option>';
+  bdLocales.forEach(l => {
+    sel.innerHTML += `<option value="${l.nombre}" data-sigla="${l.sigla}">[${l.sigla}] ${l.nombre}</option>`;
+  });
+}
+
+function alCambiarLocalSelect() {
+  const sel = document.getElementById('local-select-mcd');
+  const opt = sel.options[sel.selectedIndex];
+  if(sel.value !== "") {
+    document.getElementById('local-value').value = sel.value;
+    document.getElementById('local-sigla').value = opt.getAttribute('data-sigla') || 'MCD';
+  } else {
+    document.getElementById('local-value').value = '';
+    document.getElementById('local-sigla').value = '';
+  }
 }
 
 function alSeleccionarTecnico() {
@@ -303,7 +324,7 @@ function alSeleccionarCliente() {
   
   fMcd.style.display = 'none';
   fExt.style.display = 'none';
-  document.getElementById('local-search').value = '';
+  document.getElementById('local-select-mcd').value = '';
   document.getElementById('local-value').value = '';
   document.getElementById('local-sigla').value = '';
   document.getElementById('local-ext').value = '';
@@ -314,39 +335,6 @@ function alSeleccionarCliente() {
     fExt.style.display = 'block';
   }
 }
-
-function mostrarDropdownLocales() { filtrarLocales(); }
-
-function filtrarLocales() {
-  const text = document.getElementById('local-search').value.toLowerCase();
-  const dropdown = document.getElementById('local-dropdown');
-  dropdown.innerHTML = '';
-  
-  const filtrados = bdLocales.filter(l => l.nombre.toLowerCase().includes(text) || l.sigla.toLowerCase().includes(text));
-  if(filtrados.length > 0) {
-    dropdown.style.display = 'block';
-    filtrados.forEach(l => {
-      const item = document.createElement('div');
-      item.className = 'cliente-item';
-      item.textContent = `[${l.sigla}] ${l.nombre}`;
-      item.onclick = () => {
-        document.getElementById('local-search').value = l.nombre;
-        document.getElementById('local-value').value = l.nombre;
-        document.getElementById('local-sigla').value = l.sigla;
-        dropdown.style.display = 'none';
-      };
-      dropdown.appendChild(item);
-    });
-  } else {
-    dropdown.style.display = 'none';
-  }
-}
-
-document.addEventListener('click', function(e) {
-  if(e.target.id !== 'local-search') {
-    document.getElementById('local-dropdown').style.display = 'none';
-  }
-});
 
 function agregarHallazgo() {
   contadorHallazgos++;
@@ -499,8 +487,12 @@ function validarPagina(p) {
     const cli = document.getElementById('cliente-select').value;
     const cliUpper = cli.toUpperCase();
     if(!cli){ showToast('Selecciona el Cliente'); return false; }
-    if((cliUpper.includes('MCD') || cliUpper.includes('DONALD')) && !document.getElementById('local-value').value){ showToast('Selecciona un local'); return false; }
-    if(!cliUpper.includes('MCD') && !cliUpper.includes('DONALD') && !document.getElementById('local-ext').value.trim()){ showToast('Especifica la dirección/local'); return false; }
+    
+    if(cliUpper.includes('MCD') || cliUpper.includes('DONALD')) {
+      if(!document.getElementById('local-value').value) { showToast('Selecciona un local'); return false; }
+    } else {
+      if(!document.getElementById('local-ext').value.trim()) { showToast('Especifica la dirección/local'); return false; }
+    }
     if(!document.getElementById('tipo-visita').value){ showToast('Selecciona tipo de visita'); return false; }
   }
   if(p === 2) {

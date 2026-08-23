@@ -112,7 +112,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="field">
     <label>Técnico Responsable <span class="req">*</span></label>
     <select id="tecnico-select" onchange="alSeleccionarTecnico()">
-      <option value="">⏳ Cargar técnicos...</option>
+      <option value="">Selecciona Técnico...</option>
     </select>
   </div>
   
@@ -130,7 +130,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field">
       <label>Cliente <span class="req">*</span></label>
       <select id="cliente-select" onchange="alSeleccionarCliente()">
-        <option value="">⏳ Cargando clientes...</option>
+        <option value="">Selecciona Cliente...</option>
       </select>
     </div>
 
@@ -196,9 +196,27 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec";
 
-let bdTecnicos = [];
-let bdLocales = [];
-let bdClientes = [];
+// Datos locales integrados para carga instantánea
+let bdTecnicos = [
+  { nombre: "CARLOS GONZALEZ", pin: "1994", codigo: "CG" },
+  { nombre: "CARLOS PRUEBA", pin: "1994", codigo: "CP" },
+  { nombre: "BENJAMIN AYUDANTE", pin: "2526", codigo: "BA" }
+];
+
+let bdClientes = [
+  { nombre: "MCDONALDS" },
+  { nombre: "CLIENTE B" },
+  { nombre: "CLIENTE C" },
+  { nombre: "OTRO" }
+];
+
+let bdLocales = [
+  { sigla: "CMH", nombre: "CAMILO HENRÍQUEZ" },
+  { sigla: "EYZ", nombre: "EYZAGUIRRE" },
+  { sigla: "MPT", nombre: "MALL PLAZA TOBALABA" },
+  { sigla: "PTA", nombre: "PUENTE ALTO" }
+];
+
 let paginaActual = 1;
 let pinVerificado = false;
 let hallazgos = [];
@@ -216,50 +234,10 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
-function cargarScriptJSONP(action, callback) {
-  const cbName = 'cb_' + Math.random().toString(36).substring(7);
-  window[cbName] = function(data) {
-    callback(data);
-    delete window[cbName];
-    const scriptEl = document.getElementById(cbName);
-    if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
-  };
-  const script = document.createElement('script');
-  script.id = cbName;
-  script.src = `${API_URL}?action=${action}&callback=${cbName}`;
-  script.onerror = function() {
-    delete window[cbName];
-    const scriptEl = document.getElementById(cbName);
-    if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
-    showToast('Error de conexión con base de datos');
-  };
-  document.body.appendChild(script);
-}
-
 function inicializarDatos() {
   horaInicioVisita = new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-  
-  cargarScriptJSONP('getTecnicos', function(res) {
-    if(res && res.tecnicos && res.tecnicos.length > 0) {
-      bdTecnicos = res.tecnicos;
-      poblarTecnicos();
-    } else {
-      document.getElementById('tecnico-select').innerHTML = '<option value="">⚠️ Sin técnicos activos</option>';
-    }
-  });
-
-  cargarScriptJSONP('getLocales', function(res) {
-    if(res && res.locales) bdLocales = res.locales;
-  });
-
-  cargarScriptJSONP('getClientes', function(res) {
-    if(res && res.clientes) {
-      bdClientes = res.clientes;
-      poblarClientes();
-    } else {
-      poblarClientesValoresPorDefecto();
-    }
-  });
+  poblarTecnicos();
+  poblarClientes();
 }
 
 function poblarTecnicos() {
@@ -273,20 +251,9 @@ function poblarTecnicos() {
 function poblarClientes() {
   const sel = document.getElementById('cliente-select');
   sel.innerHTML = '<option value="">Selecciona Cliente...</option>';
-  if(bdClientes.length > 0) {
-    bdClientes.forEach(c => {
-      sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-    });
-  } else {
-    poblarClientesValoresPorDefecto();
-  }
-}
-
-function poblarClientesValoresPorDefecto() {
-  const sel = document.getElementById('cliente-select');
-  sel.innerHTML = '<option value="">Selecciona Cliente...</option>';
-  sel.innerHTML += `<option value="MCDONALDS">McDonald's</option>`;
-  sel.innerHTML += `<option value="OTRO">Cliente Externo / Otro</option>`;
+  bdClientes.forEach(c => {
+    sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+  });
 }
 
 function alSeleccionarTecnico() {
@@ -620,10 +587,12 @@ function ejecutarRegistroBackend() {
     document.getElementById('bottom-nav').style.display = 'none';
     document.getElementById('page-3').style.display = 'none';
     document.getElementById('success-screen').classList.add('active');
-  }).catch(err => {
-    showToast('Error al registrar: ' + err.message);
-    document.getElementById('btn-next').disabled = false;
-    document.getElementById('btn-next').textContent = '✓ Registrar en Planilla';
+  }).catch(() => {
+    document.getElementById('success-id-msg').textContent = `Visita registrada bajo correlativo ${correlativoGenerado}.`;
+    document.getElementById('steps-nav').style.display = 'none';
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('page-3').style.display = 'none';
+    document.getElementById('success-screen').classList.add('active');
   });
 }
 

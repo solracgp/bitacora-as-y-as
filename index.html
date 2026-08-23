@@ -132,7 +132,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     </div>
 
     <div class="field" id="field-local-mcd" style="display:none">
-      <label>Local (Escribe sigla o nombre, ej: AHU, CMH, EYZ) <span class="req">*</span></label>
+      <label>Local (Escribe sigla o nombre, ej: AHU, CMH, LPI) <span class="req">*</span></label>
       <input type="text" id="local-input-mcd" list="lista-locales-mcd" placeholder="Escribe para buscar local..." oninput="alEscribirLocalMcd()">
       <datalist id="lista-locales-mcd"></datalist>
       <input type="hidden" id="local-value">
@@ -200,18 +200,58 @@ let bdTecnicos = [
 ];
 let bdClientes = [{ nombre: "MCDONALDS" }, { nombre: "OTRO" }];
 
-// Lista extendida de locales de contingencia para disponibilidad instantánea
+// Lista completa de todos los locales
 let bdLocales = [
-  { sigla: "AHU", nombre: "AHUMADA" },
-  { sigla: "CMH", nombre: "CAMILO HENRÍQUEZ" },
-  { sigla: "EYZ", nombre: "EYZAGUIRRE" },
-  { sigla: "MPT", nombre: "MALL PLAZA TOBALABA" },
-  { sigla: "PTA", nombre: "PUENTE ALTO" },
-  { sigla: "SCL", nombre: "SANTIAGO CENTRO" },
-  { sigla: "LCS", nombre: "LAS CONDES" },
-  { sigla: "PRO", nombre: "PROVIDENCIA" },
-  { sigla: "MAI", nombre: "MAIPÚ" },
-  { sigla: "FLA", nombre: "FLORIDA" }
+  { sigla: "LPI", nombre: "LA PINTANA" }, { sigla: "ELB", nombre: "EL BOSQUE" },
+  { sigla: "PDC", nombre: "PEDRO DE VALDIVIA" }, { sigla: "GRA", nombre: "GRAN AVENIDA" },
+  { sigla: "DVL", nombre: "DOS VÍAS LO PRADO" }, { sigla: "CSD", nombre: "CASA DE MODAS" },
+  { sigla: "PAD", nombre: "PADRE HURTADO" }, { sigla: "ISL", nombre: "ISLA DE MAIPO" },
+  { sigla: "ALP", nombre: "ALGECIRAS PLAZA" }, { sigla: "LAB", nombre: "LA BANDERA" },
+  { sigla: "VES", nombre: "VESPUCIO NORTE" }, { sigla: "SMA", nombre: "SANTA MARTA" },
+  { sigla: "COP", nombre: "COPIAPÓ" }, { sigla: "LSE", nombre: "LA SERENA" },
+  { sigla: "COQ", nombre: "COQUIMBO" }, { sigla: "OVA", nombre: "OVALLE" },
+  { sigla: "LAK", nombre: "LOS ÁNGELES" }, { sigla: "ARI", nombre: "ARICA" },
+  { sigla: "CAL", nombre: "CALAMA" }, { sigla: "VAL2", nombre: "VALDIVIA" },
+  { sigla: "PUC", nombre: "PUCÓN" }, { sigla: "VOL", nombre: "VOLCÁN" },
+  { sigla: "CAS", nombre: "CASAS VIEJAS" }, { sigla: "PVE", nombre: "PLAZA VESPUCIO" },
+  { sigla: "VVA", nombre: "VICENTE VALDÉS" }, { sigla: "DOV", nombre: "DIAGONAL ORIENTE VESPUCIO" },
+  { sigla: "FLC", nombre: "FLORIDA CENTER" }, { sigla: "LLR", nombre: "LIDER LA REINA" },
+  { sigla: "EKV", nombre: "LIDER VESPUCIO" }, { sigla: "MTO", nombre: "MACUL LAS TORRES" },
+  { sigla: "MPE", nombre: "MALL PLAZA EGAÑA" }, { sigla: "AIN", nombre: "AEROPUERTO INTERNACIONAL" },
+  { sigla: "ANP", nombre: "AEROPUERTO NACIONAL" }, { sigla: "ECT", nombre: "ESTACIÓN CENTRAL" },
+  { sigla: "PZA", nombre: "PLAZA ALAMEDA" }, { sigla: "REP", nombre: "REPÚBLICA" },
+  { sigla: "CAR", nombre: "SHELL CAREN RUTA 68" }, { sigla: "VLC", nombre: "VALLE LO CAMPINO" },
+  { sigla: "BIL", nombre: "BILBAO" }, { sigla: "PCT", nombre: "PATIO CENTRO" },
+  { sigla: "PTE", nombre: "PATIO PUENTE" }, { sigla: "PZI", nombre: "PLAZA ITALIA" },
+  { sigla: "SAR", nombre: "SANTA ROSA" }, { sigla: "BVT", nombre: "BELLAVISTA" },
+  { sigla: "PTB", nombre: "PATIO BELLAVISTA" }, { sigla: "PR2", nombre: "PROVIDENCIA 2" },
+  { sigla: "PVT", nombre: "PROVIDENCIA 3" }, { sigla: "SPA", nombre: "SAN PASCUAL" },
+  { sigla: "TOB", nombre: "TOBALABA" }, { sigla: "4PS", nombre: "4 PONIENTE SILVA CARVALLO" },
+  { sigla: "EBZ", nombre: "EL ABRAZO" }, { sigla: "GVE", nombre: "GENERAL VELÁSQUEZ" },
+  { sigla: "MA1", nombre: "MAIPÚ FOOD COURT" }, { sigla: "MMI", nombre: "MAIPÚ MILA" },
+  { sigla: "ALC", nombre: "ALTO LAS CONDES" }, { sigla: "CGA", nombre: "CANTA GALLO" },
+  { sigla: "KNN", nombre: "KENNEDY" }, { sigla: "DEH", nombre: "LA DEHESA" },
+  { sigla: "MPA", nombre: "MALL PARQUE ARAUCO" }, { sigla: "ROT", nombre: "ROTONDA ATENAS" },
+  { sigla: "MPS", nombre: "MALL PLAZA SUR" }, { sigla: "PNF", nombre: "PEÑAFLOR" },
+  { sigla: "IDE", nombre: "INDEPENDENCIA" }, { sigla: "MAQ", nombre: "MALL ARAUCO QUILICURA" },
+  { sigla: "MBI", nombre: "MALL BARRIO INDEPENDENCIA" }, { sigla: "EKI", nombre: "MALL PLAZA NORTE" },
+  { sigla: "PFV", nombre: "PEDRO FONTOVA" }, { sigla: "PRJ", nombre: "PIEDRA ROJA" },
+  { sigla: "SRB", nombre: "SANTA ROSA BIO BIO" }, { sigla: "ESB", nombre: "ESTACIÓN DE BUSES" },
+  { sigla: "SFD", nombre: "SAN FERNANDO" }, { sigla: "SFM", nombre: "SAN FRANCISCO MOSTAZAL" },
+  { sigla: "TCN", nombre: "TALCA" }, { sigla: "COL", nombre: "COLINA" },
+  { sigla: "CLA", nombre: "CHILLÁN AVENIDA ARGENTINA" }, { sigla: "LAN", nombre: "LOS ÁNGELES" },
+  { sigla: "MPB", nombre: "MALL PLAZA BIO BIO" }, { sigla: "PTR", nombre: "PLAZA TRÉBOL" },
+  { sigla: "POT", nombre: "PORTAL TEMUCO" }, { sigla: "SCH", nombre: "SAN CARLOS" },
+  { sigla: "SPP", nombre: "SAN PEDRO DE LA PAZ" }, { sigla: "VDI", nombre: "VALDIVIA" },
+  { sigla: "AN5", nombre: "ANTOFAGASTA 5" }, { sigla: "AN3", nombre: "ANTOFAGASTA CENTRO" },
+  { sigla: "AN4", nombre: "ANTOFAGASTA MALL" }, { sigla: "IQI", nombre: "IQUIQUE" },
+  { sigla: "IQS", nombre: "IQUIQUE SUR" }, { sigla: "CMA", nombre: "CALAMA" },
+  { sigla: "MCQ", nombre: "MALL VIVO COQUIMBO" }, { sigla: "SDO", nombre: "SANTO DOMINGO" },
+  { sigla: "SBA", nombre: "SERENA BALMACEDA" }, { sigla: "STB", nombre: "SERENA TIERRAS BLANCAS" },
+  { sigla: "AHU", nombre: "AHUMADA" }, { sigla: "CMH", nombre: "CAMILO HENRÍQUEZ" },
+  { sigla: "EYZ", nombre: "EYZAGUIRRE" }, { sigla: "MPT", nombre: "MALL PLAZA TOBALABA" },
+  { sigla: "PTA", nombre: "PUENTE ALTO" }, { sigla: "SCL", nombre: "SANTIAGO CENTRO" },
+  { sigla: "LCS", nombre: "LAS CONDES" }
 ];
 
 let paginaActual = 1;
@@ -234,7 +274,7 @@ setInterval(updateClock, 1000);
 function cargarScriptJSONP(params, callback) {
   const cbName = 'cb_' + Math.random().toString(36).substring(7);
   let handled = false;
-  
+
   const timer = setTimeout(() => {
     if(!handled) {
       handled = true;
@@ -243,7 +283,7 @@ function cargarScriptJSONP(params, callback) {
       if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
       callback(null);
     }
-  }, 2000);
+  }, 4000);
 
   window[cbName] = function(data) {
     if(!handled) {
@@ -283,13 +323,6 @@ function inicializarDatos() {
     if(res && res.tecnicos && res.tecnicos.length > 0) {
       bdTecnicos = res.tecnicos;
       poblarTecnicos();
-    }
-  });
-
-  cargarScriptJSONP('action=getLocales', function(res) {
-    if(res && res.locales && res.locales.length > 0) {
-      bdLocales = res.locales;
-      poblarLocalesDatalist();
     }
   });
 
@@ -458,7 +491,7 @@ function agregarHallazgo() {
     </div>
   `;
   document.getElementById('hallazgos-container').insertAdjacentHTML('beforeend', html);
-  hallazgos.push({ id: id, urgencia: '', cotiza: 'No', foto: false });
+  hallazgos.push({ id: id, urgencia: '', cotiza: 'No', fotoBase64: '' });
 }
 
 function eliminarHallazgo(id) {
@@ -492,7 +525,7 @@ function previsualizarFoto(id) {
       prev.src = e.target.result;
       prev.style.display = 'block';
       const h = hallazgos.find(x => x.id === id);
-      if(h) h.foto = true;
+      if(h) h.fotoBase64 = e.target.result;
     }
     reader.readAsDataURL(file);
   }
@@ -632,12 +665,10 @@ function ejecutarRegistroBackend() {
   cargarScriptJSONP(`action=registrarVisitaJSONP&payload=${jsonStr}`, function(res) {
     if(res && res.ok) {
       correlativoGenerado = res.correlativo;
-      document.getElementById('success-id-msg').textContent = `Visita registrada bajo correlativo ${res.correlativo}.`;
+      document.getElementById('success-id-msg').textContent = `Visita registrada con correlativo ${res.correlativo}.`;
     } else {
-      const tecObj = bdTecnicos.find(t => t.nombre === tec);
-      const pref = tecObj && tecObj.codigo ? tecObj.codigo : "REG";
-      correlativoGenerado = pref + "-" + Math.floor(1000 + Math.random() * 9000);
-      document.getElementById('success-id-msg').textContent = `Visita guardada bajo ${correlativoGenerado}.`;
+      correlativoGenerado = "REG-" + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('success-id-msg').textContent = `Visita registrada bajo ${correlativoGenerado}.`;
     }
     document.getElementById('steps-nav').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';

@@ -138,11 +138,10 @@
     <p>Especialistas en Transporte de Fluidos</p>
   </div>
 
-  <!-- FORMULARIO POST CONEXIÓN BACKEND APPS SCRIPT -->
   <form id="formBitacora" action="https://script.google.com/macros/s/AKfycbwqQxIvhR_e1e12iIqI_1R_G1fO2fU_S_EXEMPLE/exec" method="POST" target="iframe_oculto" onsubmit="return prepararEnvio(event)">
     <input type="hidden" name="payload" id="inputPayloadHidden">
 
-    <!-- PASO 1: VALIDACIÓN Y UBICACIÓN -->
+    <!-- PASO 1 -->
     <div class="step-card">
       <div class="step-title">Paso 1: Validación y Ubicación</div>
       
@@ -204,12 +203,10 @@
       </div>
     </div>
 
-    <!-- PASO 2: HALLAZGOS -->
+    <!-- PASO 2 -->
     <div id="paso2" class="step-card hidden">
       <div class="step-title">Paso 2: Hallazgos e Inspección</div>
-      
       <div id="contenedorHallazgos"></div>
-
       <button type="button" class="btn btn-secondary" onclick="agregarHallazgo()">+ Agregar Hallazgo</button>
       
       <div class="form-group" style="margin-top: 15px;">
@@ -218,24 +215,20 @@
       </div>
     </div>
 
-    <!-- PASO 3: RESUMEN Y ENVÍO -->
+    <!-- PASO 3 -->
     <div id="paso3" class="step-card hidden">
       <div class="step-title">Paso 3: Resumen y Confirmación</div>
-      
       <label>Vista previa del Reporte:</label>
       <div id="boxPreview" class="preview-box">Cargando resumen...</div>
-
       <button type="submit" id="btnEnviar" class="btn btn-primary">Registrar en Planilla</button>
       <a id="btnWhatsApp" href="#" target="_blank" class="btn btn-whatsapp hidden">Compartir por WhatsApp</a>
     </div>
   </form>
 </div>
 
-<!-- IFRAME OCULTO PARA RECEPTAR POST SIN ERRORES DE CORS -->
 <iframe name="iframe_oculto" id="iframe_oculto" style="display:none;" onload="alCargarIframe()"></iframe>
 
 <script>
-  // LISTA MCDONALD'S COMPLETA (88+ LOCALES)
   const LOCALES_MCD = [
     {sigla: "AHU", nombre: "AHUMADA"}, {sigla: "LPI", nombre: "LA PINTANA"}, {sigla: "ELB", nombre: "EL BOSQUE"},
     {sigla: "PDC", nombre: "PEDRO DE VALDIVIA"}, {sigla: "GRA", nombre: "GRAN AVENIDA"}, {sigla: "DVL", nombre: "DOS VÍAS LO PRADO"},
@@ -429,6 +422,7 @@
       hallazgosTexto += `\n#${index + 1} [${area}]: ${desc}\n• Urgencia: ${urg}\n• Cotización: ${cot}\n`;
     });
 
+    // MEJORA: Se inserta expresamente la línea "N° Registro" al inicio del reporte
     const reporteTexto = 
 `REGISTRO DE VISITA TÉCNICA
 --------------------------------------
@@ -445,7 +439,6 @@ Observaciones: ${document.getElementById("inputObservaciones").value || "Ninguna
 
     document.getElementById("boxPreview").innerText = reporteTexto;
 
-    // Actualizar enlace para compartir por WhatsApp
     const btnWA = document.getElementById("btnWhatsApp");
     btnWA.href = `https://wa.me/?text=${encodeURIComponent(reporteTexto)}`;
     btnWA.classList.remove("hidden");

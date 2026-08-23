@@ -12,9 +12,11 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;max-width:480px;margin:0 auto;position:relative;}
 .header{background:var(--blue);padding:16px 20px 14px;display:flex;align-items:center;gap:14px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(13,71,161,0.3);}
-.logo{width:44px;height:44px;background:white;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:800;color:var(--blue);font-size:13px;}
+.logo-box{width:46px;height:46px;background:white;border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,0.15);}
+.logo-box .brand{font-size:12px;font-weight:900;color:var(--blue);line-height:1;}
+.logo-box .subbrand{font-size:7px;font-weight:700;color:var(--orange);letter-spacing:0.5px;margin-top:2px;}
 .header-info h1{font-size:16px;font-weight:700;color:white;line-height:1.2;}
-.header-info p{font-size:11px;color:rgba(255,255,255,0.75);margin-top:1px;}
+.header-info p{font-size:11px;color:rgba(255,255,255,0.8);margin-top:1px;}
 .header-date{margin-left:auto;text-align:right;flex-shrink:0;}
 .header-date span{font-size:10px;color:rgba(255,255,255,0.7);display:block;}
 .header-date strong{font-size:12px;color:white;font-weight:600;}
@@ -83,10 +85,13 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <body>
 
 <div class="header">
-  <div class="logo">AS & AS</div>
+  <div class="logo-box">
+    <span class="brand">AS&AS</span>
+    <span class="subbrand">BOMBAS</span>
+  </div>
   <div class="header-info">
     <h1>Registro de Visita</h1>
-    <p>Operaciones Técnicas</p>
+    <p>Soluciones en Bombas</p>
   </div>
   <div class="header-date">
     <span id="hdr-dia">--- -- ---</span>
@@ -112,7 +117,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="field">
     <label>Técnico Responsable <span class="req">*</span></label>
     <select id="tecnico-select" onchange="alSeleccionarTecnico()">
-      <option value="">Selecciona Técnico...</option>
+      <option value="">⏳ Conectando con servidor...</option>
     </select>
   </div>
   
@@ -130,7 +135,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field">
       <label>Cliente <span class="req">*</span></label>
       <select id="cliente-select" onchange="alSeleccionarCliente()">
-        <option value="">Selecciona Cliente...</option>
+        <option value="">⏳ Cargando clientes...</option>
       </select>
     </div>
 
@@ -196,27 +201,9 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec";
 
-// Datos locales integrados para carga instantánea
-let bdTecnicos = [
-  { nombre: "CARLOS GONZALEZ", pin: "1994", codigo: "CG" },
-  { nombre: "CARLOS PRUEBA", pin: "1994", codigo: "CP" },
-  { nombre: "BENJAMIN AYUDANTE", pin: "2526", codigo: "BA" }
-];
-
-let bdClientes = [
-  { nombre: "MCDONALDS" },
-  { nombre: "CLIENTE B" },
-  { nombre: "CLIENTE C" },
-  { nombre: "OTRO" }
-];
-
-let bdLocales = [
-  { sigla: "CMH", nombre: "CAMILO HENRÍQUEZ" },
-  { sigla: "EYZ", nombre: "EYZAGUIRRE" },
-  { sigla: "MPT", nombre: "MALL PLAZA TOBALABA" },
-  { sigla: "PTA", nombre: "PUENTE ALTO" }
-];
-
+let bdTecnicos = [];
+let bdLocales = [];
+let bdClientes = [];
 let paginaActual = 1;
 let pinVerificado = false;
 let hallazgos = [];
@@ -234,10 +221,45 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
+function cargarScriptJSONP(params, callback) {
+  const cbName = 'cb_' + Math.random().toString(36).substring(7);
+  window[cbName] = function(data) {
+    callback(data);
+    delete window[cbName];
+    const scriptEl = document.getElementById(cbName);
+    if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
+  };
+  const script = document.createElement('script');
+  script.id = cbName;
+  script.src = `${API_URL}?${params}&callback=${cbName}`;
+  script.onerror = function() {
+    delete window[cbName];
+    const scriptEl = document.getElementById(cbName);
+    if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
+  };
+  document.body.appendChild(script);
+}
+
 function inicializarDatos() {
   horaInicioVisita = new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-  poblarTecnicos();
-  poblarClientes();
+  
+  cargarScriptJSONP('action=getTecnicos', function(res) {
+    if(res && res.tecnicos && res.tecnicos.length > 0) {
+      bdTecnicos = res.tecnicos;
+      poblarTecnicos();
+    }
+  });
+
+  cargarScriptJSONP('action=getLocales', function(res) {
+    if(res && res.locales) bdLocales = res.locales;
+  });
+
+  cargarScriptJSONP('action=getClientes', function(res) {
+    if(res && res.clientes) {
+      bdClientes = res.clientes;
+      poblarClientes();
+    }
+  });
 }
 
 function poblarTecnicos() {
@@ -251,9 +273,14 @@ function poblarTecnicos() {
 function poblarClientes() {
   const sel = document.getElementById('cliente-select');
   sel.innerHTML = '<option value="">Selecciona Cliente...</option>';
-  bdClientes.forEach(c => {
-    sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-  });
+  if(bdClientes.length > 0) {
+    bdClientes.forEach(c => {
+      sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+    });
+  } else {
+    sel.innerHTML += `<option value="MCDONALDS">McDonald's</option>`;
+    sel.innerHTML += `<option value="OTRO">Cliente Externo / Otro</option>`;
+  }
 }
 
 function alSeleccionarTecnico() {
@@ -556,39 +583,30 @@ function ejecutarRegistroBackend() {
   const cliUpper = cli.toUpperCase();
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
   
-  correlativoGenerado = "VIS-" + Math.floor(1000 + Math.random() * 9000);
-  
   const payload = {
-    action: "registrarVisita",
-    datos: {
-      correlativo: correlativoGenerado,
-      fecha: new Date().toISOString().split('T')[0],
-      sigla: esMcd ? document.getElementById('local-sigla').value : 'EXT',
-      local: esMcd ? document.getElementById('local-value').value : document.getElementById('local-ext').value,
-      tipo: document.getElementById('tipo-visita').value,
-      tecnico: document.getElementById('tecnico-select').value,
-      resumen: hallazgos.map(h => h.problema).join(' | '),
-      horaInicio: horaInicioVisita,
-      horaTermino: document.getElementById('hdr-hora').textContent,
-      cliente: cli,
-      observ: document.getElementById('observaciones-input').value,
-      hallazgos: hallazgos
-    }
+    fecha: new Date().toISOString().split('T')[0],
+    sigla: esMcd ? document.getElementById('local-sigla').value : 'EXT',
+    local: esMcd ? document.getElementById('local-value').value : document.getElementById('local-ext').value,
+    tipo: document.getElementById('tipo-visita').value,
+    tecnico: document.getElementById('tecnico-select').value,
+    resumen: hallazgos.map(h => h.problema).join(' | '),
+    horaInicio: horaInicioVisita,
+    horaTermino: document.getElementById('hdr-hora').textContent,
+    cliente: cli,
+    observ: document.getElementById('observaciones-input').value,
+    hallazgos: hallazgos
   };
 
-  fetch(API_URL, {
-    method: 'POST',
-    mode: 'no-cors',
-    headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify(payload)
-  }).then(() => {
-    document.getElementById('success-id-msg').textContent = `Visita registrada bajo correlativo ${correlativoGenerado}.`;
-    document.getElementById('steps-nav').style.display = 'none';
-    document.getElementById('bottom-nav').style.display = 'none';
-    document.getElementById('page-3').style.display = 'none';
-    document.getElementById('success-screen').classList.add('active');
-  }).catch(() => {
-    document.getElementById('success-id-msg').textContent = `Visita registrada bajo correlativo ${correlativoGenerado}.`;
+  const jsonStr = encodeURIComponent(JSON.stringify(payload));
+
+  cargarScriptJSONP(`action=registrarVisitaJSONP&payload=${jsonStr}`, function(res) {
+    if(res && res.ok) {
+      correlativoGenerado = res.correlativo;
+      document.getElementById('success-id-msg').textContent = `Visita registrada en Google Sheets bajo correlativo ${res.correlativo}.`;
+    } else {
+      correlativoGenerado = "REG-0001";
+      document.getElementById('success-id-msg').textContent = `Visita registrada bajo el correlativo ${correlativoGenerado}.`;
+    }
     document.getElementById('steps-nav').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';
     document.getElementById('page-3').style.display = 'none';

@@ -1,87 +1,29 @@
-<!-- Coloca este iframe antes del cierre de </body> -->
-<iframe name="iframe_oculto" id="iframe_oculto" style="display:none;" onload="confirmarEnvioExitoso()"></iframe>
-
 <script>
-  // Variable global para almacenar el correlativo proyectado
-  let correlativoGenerado = "";
-
-  /**
-   * Genera una vista previa del correlativo localmente en el frontend 
-   * para mostrar de inmediato al usuario sin retraso de red.
-   */
-  function predecirCorrelativo(tecnico) {
+  // Función para obtener/mostrar el correlativo estimado en el Paso 3 (Resumen)
+  function generarVistaPreviaCorrelativo() {
+    const tecnicoSelect = document.getElementById("selectTecnico") ? document.getElementById("selectTecnico").value : "";
     let prefijo = "REG";
-    let tec = tecnico.toLowerCase();
-    
-    if (tec.includes("carlos gonzález") || tec.includes("carlos gonzalez")) {
+    const tecLower = tecnicoSelect.toLowerCase();
+
+    if (tecLower.includes("carlos gonzalez") || tecLower.includes("carlos gonzález")) {
       prefijo = "CG";
-    } else if (tec.includes("carlos prueba")) {
+    } else if (tecLower.includes("carlos prueba")) {
       prefijo = "CP";
-    } else if (tec.includes("benjamín") || tec.includes("benjamin")) {
+    } else if (tecLower.includes("benjamin") || tecLower.includes("benjamín")) {
       prefijo = "BA";
     }
 
-    // Puedes guardar un contador en localStorage o mostrar el formato predeterminado
-    return prefijo + "-PROCESANDO...";
-  }
-
-  /**
-   * Función para ejecutar al hacer Submit en el Formulario del Paso 3
-   */
-  function enviarFormularioBitacora(event) {
-    // 1. Obtener valores de los campos
-    const tecnico = document.getElementById("selectTecnico").value;
-    const cliente = document.getElementById("selectCliente").value;
-    const local = document.getElementById("inputLocal").value;
-    const sigla = document.getElementById("inputSigla").value;
-    const tipoVisita = document.getElementById("selectTipoVisita").value;
-    const horaInicio = document.getElementById("horaInicio").value;
-    const horaTermino = document.getElementById("horaTermino").value;
-    const observaciones = document.getElementById("inputObservaciones").value;
-
-    // Obtener hallazgos recopilados en el Paso 2
-    const hallazgos = obtenerHallazgosCompilados(); // Ajusta según tu función interna
-    const fotosBase64 = obtenerFotosBase64(); // Array de imágenes cargadas
-
-    // 2. Construir el objeto Payload
-    const payload = {
-      tecnico: tecnico,
-      cliente: cliente,
-      local: local,
-      sigla: sigla,
-      tipoVisita: tipoVisita,
-      horaInicio: horaInicio,
-      horaTermino: horaTermino,
-      resumenHallazgos: hallazgos,
-      observaciones: observaciones,
-      fotos: fotosBase64
-    };
-
-    // 3. Asignar JSON stringificado al input hidden 'payload' que va dentro del formulario enviado al iframe
-    document.getElementById("inputPayloadHidden").value = JSON.stringify(payload);
-
-    // Mostrar indicador de carga
-    document.getElementById("btnEnviar").disabled = true;
-    document.getElementById("btnEnviar").innerText = "Registrando en Planilla...";
-
-    // Continuar submit nativo hacia el iframe
-    return true;
-  }
-
-  /**
-   * Se ejecuta automáticamente cuando el iframe termina de cargar la respuesta de Apps Script
-   */
-  function confirmarEnvioExitoso() {
-    // Evitar que se dispare al cargar la página por primera vez
-    if (!document.getElementById("btnEnviar") || !document.getElementById("btnEnviar").disabled) {
-      return;
+    // Muestra en la interfaz un correlativo temporal o proyectado
+    const elementoCorrelativo = document.getElementById("lblCorrelativo");
+    if (elementoCorrelativo) {
+      elementoCorrelativo.innerText = prefijo + "-REGISTRANDO...";
     }
+  }
 
-    document.getElementById("btnEnviar").innerText = "¡Registrado con Éxito!";
-    
-    // Mostrar mensaje emergente / modal o habilitar botón de WhatsApp con la información
-    alert("El registro de visita ha sido guardado exitosamente en la planilla de Google Sheets.");
-    
-    // Opcional: Reiniciar formulario o redirigir
+  // Ejecutar al enviar el formulario
+  function alEnviarFormulario() {
+    generarVistaPreviaCorrelativo();
+    document.getElementById("btnEnviar").disabled = true;
+    document.getElementById("btnEnviar").innerText = "Guardando en Planilla...";
   }
 </script>

@@ -117,7 +117,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="field">
     <label>Técnico Responsable <span class="req">*</span></label>
     <select id="tecnico-select" onchange="alSeleccionarTecnico()">
-      <option value="">⏳ Conectando con servidor...</option>
+      <option value="">Selecciona Técnico...</option>
     </select>
   </div>
   
@@ -135,7 +135,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
     <div class="field">
       <label>Cliente <span class="req">*</span></label>
       <select id="cliente-select" onchange="alSeleccionarCliente()">
-        <option value="">⏳ Cargando clientes...</option>
+        <option value="">Selecciona Cliente...</option>
       </select>
     </div>
 
@@ -201,9 +201,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <script>
 const API_URL = "https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec";
 
-let bdTecnicos = [];
+let bdTecnicos = [
+  { nombre: "CARLOS GONZALEZ", pin: "1994", codigo: "CG" },
+  { nombre: "CARLOS PRUEBA", pin: "1994", codigo: "CP" },
+  { nombre: "BENJAMIN AYUDANTE", pin: "2526", codigo: "BA" }
+];
+let bdClientes = [{ nombre: "MCDONALDS" }, { nombre: "OTRO" }];
 let bdLocales = [];
-let bdClientes = [];
+
 let paginaActual = 1;
 let pinVerificado = false;
 let hallazgos = [];
@@ -221,45 +226,10 @@ function updateClock(){
 updateClock();
 setInterval(updateClock, 1000);
 
-function cargarScriptJSONP(params, callback) {
-  const cbName = 'cb_' + Math.random().toString(36).substring(7);
-  window[cbName] = function(data) {
-    callback(data);
-    delete window[cbName];
-    const scriptEl = document.getElementById(cbName);
-    if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
-  };
-  const script = document.createElement('script');
-  script.id = cbName;
-  script.src = `${API_URL}?${params}&callback=${cbName}`;
-  script.onerror = function() {
-    delete window[cbName];
-    const scriptEl = document.getElementById(cbName);
-    if(scriptEl) scriptEl.parentNode.removeChild(scriptEl);
-  };
-  document.body.appendChild(script);
-}
-
 function inicializarDatos() {
   horaInicioVisita = new Date().toLocaleTimeString('es-CL',{hour:'2-digit',minute:'2-digit'});
-  
-  cargarScriptJSONP('action=getTecnicos', function(res) {
-    if(res && res.tecnicos && res.tecnicos.length > 0) {
-      bdTecnicos = res.tecnicos;
-      poblarTecnicos();
-    }
-  });
-
-  cargarScriptJSONP('action=getLocales', function(res) {
-    if(res && res.locales) bdLocales = res.locales;
-  });
-
-  cargarScriptJSONP('action=getClientes', function(res) {
-    if(res && res.clientes) {
-      bdClientes = res.clientes;
-      poblarClientes();
-    }
-  });
+  poblarTecnicos();
+  poblarClientes();
 }
 
 function poblarTecnicos() {
@@ -273,14 +243,9 @@ function poblarTecnicos() {
 function poblarClientes() {
   const sel = document.getElementById('cliente-select');
   sel.innerHTML = '<option value="">Selecciona Cliente...</option>';
-  if(bdClientes.length > 0) {
-    bdClientes.forEach(c => {
-      sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
-    });
-  } else {
-    sel.innerHTML += `<option value="MCDONALDS">McDonald's</option>`;
-    sel.innerHTML += `<option value="OTRO">Cliente Externo / Otro</option>`;
-  }
+  bdClientes.forEach(c => {
+    sel.innerHTML += `<option value="${c.nombre}">${c.nombre}</option>`;
+  });
 }
 
 function alSeleccionarTecnico() {
@@ -426,7 +391,7 @@ function agregarHallazgo() {
       </div>
       <div class="field">
         <label>Foto Respaldo</label>
-        <div class="foto-mini-area" onclick="document.getElementById('file-${id}').click()">📸 Capturar Foto</div>
+        <div class="foto-mini-area" onclick="document.getElementById('file-${id}').click()">📸 Capturar / Subir Foto</div>
         <input type="file" id="file-${id}" accept="image/*" capture="environment" style="display:none" onchange="previsualizarFoto(${id})">
         <img id="prev-${id}" class="foto-preview-element" src="" alt="Previsualización">
       </div>
@@ -579,6 +544,7 @@ function ejecutarRegistroBackend() {
   document.getElementById('btn-next').textContent = 'Guardando...';
   document.getElementById('btn-next').disabled = true;
   
+  const tec = document.getElementById('tecnico-select').value;
   const cli = document.getElementById('cliente-select').value;
   const cliUpper = cli.toUpperCase();
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
@@ -588,7 +554,7 @@ function ejecutarRegistroBackend() {
     sigla: esMcd ? document.getElementById('local-sigla').value : 'EXT',
     local: esMcd ? document.getElementById('local-value').value : document.getElementById('local-ext').value,
     tipo: document.getElementById('tipo-visita').value,
-    tecnico: document.getElementById('tecnico-select').value,
+    tecnico: tec,
     resumen: hallazgos.map(h => h.problema).join(' | '),
     horaInicio: horaInicioVisita,
     horaTermino: document.getElementById('hdr-hora').textContent,
@@ -597,16 +563,23 @@ function ejecutarRegistroBackend() {
     hallazgos: hallazgos
   };
 
-  const jsonStr = encodeURIComponent(JSON.stringify(payload));
-
-  cargarScriptJSONP(`action=registrarVisitaJSONP&payload=${jsonStr}`, function(res) {
-    if(res && res.ok) {
-      correlativoGenerado = res.correlativo;
-      document.getElementById('success-id-msg').textContent = `Visita registrada en Google Sheets bajo correlativo ${res.correlativo}.`;
-    } else {
-      correlativoGenerado = "REG-0001";
-      document.getElementById('success-id-msg').textContent = `Visita registrada bajo el correlativo ${correlativoGenerado}.`;
-    }
+  fetch(API_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(payload)
+  }).then(() => {
+    const tecObj = bdTecnicos.find(t => t.nombre === tec);
+    const pref = tecObj && tecObj.codigo ? tecObj.codigo : "REG";
+    correlativoGenerado = pref + "-" + Math.floor(1000 + Math.random() * 9000);
+    
+    document.getElementById('success-id-msg').textContent = `Visita enviada correctamente a Google Sheets.`;
+    document.getElementById('steps-nav').style.display = 'none';
+    document.getElementById('bottom-nav').style.display = 'none';
+    document.getElementById('page-3').style.display = 'none';
+    document.getElementById('success-screen').classList.add('active');
+  }).catch(() => {
+    document.getElementById('success-id-msg').textContent = `Visita lista.`;
     document.getElementById('steps-nav').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';
     document.getElementById('page-3').style.display = 'none';

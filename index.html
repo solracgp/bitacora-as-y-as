@@ -190,7 +190,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="toast" id="toast">Aviso</div>
 
-<!-- Formulario oculto para envío garantizado POST con URL vinculada -->
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 <form id="post-form" action="https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec" method="POST" target="hidden_iframe" style="display:none;">
   <input type="hidden" name="payload" id="post-payload">
@@ -346,6 +345,18 @@ function alSeleccionarTecnico() {
   } else {
     pinF.style.display = 'none';
   }
+}
+
+function generarNuevoCorrelativo(tecNombre) {
+  const tecObj = bdTecnicos.find(t => t.nombre === tecNombre);
+  const prefijo = tecObj && tecObj.codigo ? tecObj.codigo : "CG";
+  
+  // Guardar y recuperar contador en localStorage para secuencia continua
+  let contador = parseInt(localStorage.getItem(`contador_${prefijo}`) || "0") + 1;
+  localStorage.setItem(`contador_${prefijo}`, contador);
+  
+  const numStr = String(contador).padStart(3, '0');
+  return `${prefijo}-${numStr}`;
 }
 
 function verificarPin() {
@@ -599,7 +610,11 @@ function ejecutarRegistroBackend() {
   const cliUpper = cli.toUpperCase();
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
   
+  // Generar número correlativo
+  correlativoGenerado = generarNuevoCorrelativo(tec);
+
   const payloadData = {
+    correlativo: correlativoGenerado,
     fecha: new Date().toISOString().split('T')[0],
     sigla: esMcd ? document.getElementById('local-sigla').value : 'EXT',
     local: esMcd ? document.getElementById('local-value').value : document.getElementById('local-ext').value,
@@ -617,7 +632,7 @@ function ejecutarRegistroBackend() {
   document.getElementById('post-form').submit();
 
   setTimeout(function() {
-    document.getElementById('success-id-msg').textContent = `Visita guardada exitosamente en Google Sheets.`;
+    document.getElementById('success-id-msg').textContent = `Visita (${correlativoGenerado}) guardada exitosamente en Google Sheets.`;
     document.getElementById('steps-nav').style.display = 'none';
     document.getElementById('bottom-nav').style.display = 'none';
     document.getElementById('page-3').style.display = 'none';
@@ -636,6 +651,9 @@ function abrirWhatsApp() {
   
   let texto = `*REGISTRO DE VISITA TÉCNICA*\n`;
   texto += `--------------------------------------\n`;
+  if (correlativoGenerado) {
+    texto += `*N° Registro:* ${correlativoGenerado}\n`;
+  }
   texto += `*Técnico:* ${tec}\n`;
   texto += `*Cliente:* ${cli}\n`;
   texto += `*Ubicación:* ${loc}\n`;

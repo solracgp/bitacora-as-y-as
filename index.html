@@ -190,13 +190,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="toast" id="toast">Aviso</div>
 
+<!-- Formulario oculto para envío garantizado POST -->
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-<form id="post-form" action="https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec" method="POST" target="hidden_iframe" style="display:none;">
+<form id="post-form" action="https://script.google.com/macros/s/AKfycbx8nwjUxOrWf5vcwBYAsPcB5FKrFm1QJlJ2oXzCbyIqZ4RAF0B8qesaumAwlI9bFUzg/exec" method="POST" target="hidden_iframe" style="display:none;">
   <input type="hidden" name="payload" id="post-payload">
 </form>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbxZSXhGZZ3zk8cydTTVYIifKfv7tdAMYIBOeTUxtDvxU-GvsXGyPnHnEVc1kVCsJfx7/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbx8nwjUxOrWf5vcwBYAsPcB5FKrFm1QJlJ2oXzCbyIqZ4RAF0B8qesaumAwlI9bFUzg/exec";
 
 let bdTecnicos = [
   { nombre: "CARLOS GONZALEZ", pin: "1994", codigo: "CG" },
@@ -237,7 +238,7 @@ let bdLocales = [
   { sigla: "CGA", nombre: "CANTA GALLO" }, { sigla: "KNN", nombre: "KENNEDY" }, 
   { sigla: "DEH", nombre: "LA DEHESA" }, { sigla: "MPA", nombre: "MALL PARQUE ARAUCO" }, 
   { sigla: "ROT", nombre: "ROTONDA ATENAS" }, { sigla: "MPS", nombre: "MALL PLAZA SUR" }, 
-  { sigla: "PNF", nombre: "PEÑAFLOR" }, { sigla: "IDE", nombre: "INDEPENDENCIA" }, 
+  { sigla: "PÑF", nombre: "PEÑAFLOR" }, { sigla: "IDE", nombre: "INDEPENDENCIA" }, 
   { sigla: "MAQ", nombre: "MALL ARAUCO QUILICURA" }, { sigla: "MBI", nombre: "MALL BARRIO INDEPENDENCIA" }, 
   { sigla: "EKI", nombre: "MALL PLAZA NORTE" }, { sigla: "PFV", nombre: "PEDRO FONTOVA" }, 
   { sigla: "PRJ", nombre: "PIEDRA ROJA" }, { sigla: "SRB", nombre: "SANTA ROSA BIO BIO" }, 
@@ -347,16 +348,24 @@ function alSeleccionarTecnico() {
   }
 }
 
-function generarNuevoCorrelativo(tecNombre) {
-  const tecObj = bdTecnicos.find(t => t.nombre === tecNombre);
-  const prefijo = tecObj && tecObj.codigo ? tecObj.codigo : "CG";
+// PARCHE: Generador de Correlativo Local Garantizado (CG-2026-001)
+function obtenerCorrelativoValido(tecnicoNombre) {
+  var codigos = {
+    "CARLOS GONZALEZ": "CG",
+    "CARLOS PRUEBA": "CP",
+    "BENJAMIN AYUDANTE": "BA"
+  };
   
-  // Guardar y recuperar contador en localStorage para secuencia continua
-  let contador = parseInt(localStorage.getItem(`contador_${prefijo}`) || "0") + 1;
-  localStorage.setItem(`contador_${prefijo}`, contador);
+  var tecUpper = (tecnicoNombre || "").toUpperCase();
+  var prefijo = codigos[tecUpper] || "CG";
+  var year = new Date().getFullYear();
+  var key = "correlativo_" + prefijo + "_" + year;
   
-  const numStr = String(contador).padStart(3, '0');
-  return `${prefijo}-${numStr}`;
+  var contador = parseInt(localStorage.getItem(key) || "0") + 1;
+  localStorage.setItem(key, contador);
+  
+  var numFormateado = ("000" + contador).slice(-3);
+  return prefijo + "-" + year + "-" + numFormateado;
 }
 
 function verificarPin() {
@@ -610,8 +619,8 @@ function ejecutarRegistroBackend() {
   const cliUpper = cli.toUpperCase();
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
   
-  // Generar número correlativo
-  correlativoGenerado = generarNuevoCorrelativo(tec);
+  // Asignar Correlativo usando la función de parche de respaldo
+  correlativoGenerado = obtenerCorrelativoValido(tec);
 
   const payloadData = {
     correlativo: correlativoGenerado,

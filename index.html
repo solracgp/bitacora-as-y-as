@@ -347,7 +347,6 @@ function alSeleccionarTecnico() {
   }
 }
 
-// Generador de Correlativo Compacto (Ej: CP-2601)
 function obtenerCorrelativoValido(tecnicoNombre) {
   var codigos = {
     "CARLOS GONZALEZ": "CG",
@@ -619,7 +618,6 @@ function ejecutarRegistroBackend() {
   const cliUpper = cli.toUpperCase();
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
   
-  // Generar Correlativo Compacto (CP-2601)
   correlativoGenerado = obtenerCorrelativoValido(tec);
 
   const payloadData = {
@@ -649,6 +647,7 @@ function ejecutarRegistroBackend() {
   }, 1500);
 }
 
+// PUNTO 4: FORMATO OPTIMIZADO DE TEXTO PARA WHATSAPP
 function abrirWhatsApp() {
   const tec = document.getElementById('tecnico-select').value;
   const cli = document.getElementById('cliente-select').value;
@@ -656,25 +655,43 @@ function abrirWhatsApp() {
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
   const loc = esMcd ? document.getElementById('local-value').value : document.getElementById('local-ext').value;
   const tip = document.getElementById('tipo-visita').value;
-  const hora = document.getElementById('hdr-hora').textContent;
+  const horaTermino = document.getElementById('hdr-hora').textContent;
+  const observ = document.getElementById('observaciones-input').value.trim();
+
+  let texto = `*INFORME DE VISITA TÉCNICA*\n`;
+  texto += `*AS Y AS CONSTRUCCIONES*\n`;
+  texto += `═════════════════════\n\n`;
   
-  let texto = `*REGISTRO DE VISITA TÉCNICA*\n`;
-  texto += `--------------------------------------\n`;
   if (correlativoGenerado) {
-    texto += `*N° Registro:* ${correlativoGenerado}\n`;
+    texto += `*N° REGISTRO:* ${correlativoGenerado}\n`;
   }
-  texto += `*Técnico:* ${tec}\n`;
-  texto += `*Cliente:* ${cli}\n`;
-  texto += `*Ubicación:* ${loc}\n`;
-  texto += `*Tipo Visita:* ${tip}\n`;
-  texto += `*Hora Reporte:* ${hora} hrs\n\n`;
-  texto += `*HALLAZGOS:*\n`;
+  texto += `*TÉCNICO:* ${tec}\n`;
+  texto += `*CLIENTE:* ${cli}\n`;
+  texto += `*UBICACIÓN:* ${loc}\n`;
+  texto += `*TIPO VISITA:* ${tip}\n`;
+  texto += `*INICIO / TÉRMINO:* ${horaInicioVisita} - ${horaTermino} hrs\n\n`;
   
+  texto += `*HALLAZGOS Y NOVEDADES:*\n`;
+  texto += `─────────────────────\n`;
+
   hallazgos.forEach((h, idx) => {
-    texto += `\n*#${idx+1} [${h.area}]:* ${h.problema}\n`;
-    texto += `• Urgencia: ${h.urgencia}\n`;
-    texto += `• Cotización: ${h.cotiza}\n`;
+    texto += `*Item #${idx + 1}*\n`;
+    texto += `• *Área / Zona:* ${h.area || 'General'}\n`;
+    if (h.equipo) texto += `• *Equipo:* ${h.equipo}\n`;
+    texto += `• *Detalle:* ${h.problema}\n`;
+    texto += `• *Urgencia:* ${h.urgencia}\n`;
+    texto += `• *Requiere Cotización:* ${h.cotiza}\n`;
+    if (h.materiales) texto += `• *Materiales:* ${h.materiales}\n`;
+    texto += `\n`;
   });
+
+  if (observ) {
+    texto += `*OBSERVACIONES GENERALES:*\n`;
+    texto += `${observ}\n\n`;
+  }
+
+  texto += `═════════════════════\n`;
+  texto += `_Reporte generado automáticamente desde la Bitácora Digital AS y AS._`;
 
   const nroCentral = "56931000389";
   window.open(`https://wa.me/${nroCentral}?text=${encodeURIComponent(texto)}`, '_blank');

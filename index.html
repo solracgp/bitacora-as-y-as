@@ -190,7 +190,6 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 
 <div class="toast" id="toast">Aviso</div>
 
-<!-- Formulario oculto para envío garantizado POST -->
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
 <form id="post-form" action="https://script.google.com/macros/s/AKfycbx8nwjUxOrWf5vcwBYAsPcB5FKrFm1QJlJ2oXzCbyIqZ4RAF0B8qesaumAwlI9bFUzg/exec" method="POST" target="hidden_iframe" style="display:none;">
   <input type="hidden" name="payload" id="post-payload">
@@ -348,7 +347,7 @@ function alSeleccionarTecnico() {
   }
 }
 
-// PARCHE: Generador de Correlativo Local Garantizado (CG-2026-001)
+// Generador de Correlativo Compacto (Ej: CP-2601)
 function obtenerCorrelativoValido(tecnicoNombre) {
   var codigos = {
     "CARLOS GONZALEZ": "CG",
@@ -358,14 +357,15 @@ function obtenerCorrelativoValido(tecnicoNombre) {
   
   var tecUpper = (tecnicoNombre || "").toUpperCase();
   var prefijo = codigos[tecUpper] || "CG";
-  var year = new Date().getFullYear();
-  var key = "correlativo_" + prefijo + "_" + year;
+  
+  var yearShort = new Date().getFullYear().toString().slice(-2);
+  var key = "correlativo_" + prefijo + "_" + yearShort;
   
   var contador = parseInt(localStorage.getItem(key) || "0") + 1;
   localStorage.setItem(key, contador);
   
-  var numFormateado = ("000" + contador).slice(-3);
-  return prefijo + "-" + year + "-" + numFormateado;
+  var numFormateado = ("00" + contador).slice(-2);
+  return prefijo + "-" + yearShort + numFormateado;
 }
 
 function verificarPin() {
@@ -619,7 +619,7 @@ function ejecutarRegistroBackend() {
   const cliUpper = cli.toUpperCase();
   const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
   
-  // Asignar Correlativo usando la función de parche de respaldo
+  // Generar Correlativo Compacto (CP-2601)
   correlativoGenerado = obtenerCorrelativoValido(tec);
 
   const payloadData = {

@@ -20,12 +20,14 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .header-date strong{font-size:12px;color:white;font-weight:600;}
 .progress-bar-wrap{background:var(--bluedark);height:4px;}
 .progress-bar-fill{background:#64B5F6;height:4px;transition:width 0.4s ease;width:33.3%;}
-.steps-nav{background:var(--blue);padding:10px 20px 14px;display:flex;gap:6px;align-items:center;justify-content:center;}
+.steps-nav{background:var(--blue);padding:10px 20px 10px;display:flex;gap:6px;align-items:center;justify-content:center;}
 .step-dot{width:28px;height:28px;border-radius:50%;background:rgba(255,255,255,0.2);color:rgba(255,255,255,0.6);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;transition:all 0.3s;flex-shrink:0;}
 .step-dot.active{background:white;color:var(--blue);}
 .step-dot.done{background:#64B5F6;color:white;}
 .step-line{flex:1;height:2px;background:rgba(255,255,255,0.2);border-radius:2px;max-width:40px;}
 .step-line.done{background:#64B5F6;}
+.btn-historial-bar{background:var(--bluedark);padding:6px 16px;text-align:center;}
+.btn-historial-trigger{background:rgba(255,255,255,0.15);color:white;border:none;padding:5px 12px;border-radius:12px;font-size:11px;font-weight:600;font-family:'DM Sans',sans-serif;cursor:pointer;}
 .page{display:none;padding:20px 16px 100px;animation:fadeIn 0.25s ease;}
 .page.active{display:block;}
 @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
@@ -75,6 +77,16 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 .cotiza-mini-btn.selected{border-color:var(--blue);background:var(--blue3);color:var(--blue);}
 .foto-mini-area{border:1.5px dashed var(--blue4);border-radius:10px;padding:12px;text-align:center;background:var(--blue3);cursor:pointer;font-size:13px;color:var(--blue);font-weight:500;}
 .foto-preview-element{display:none;width:100%;border-radius:10px;margin-top:8px;max-height:150px;object-fit:cover;}
+
+/* MODAL HISTORIAL */
+.modal-overlay{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:400;justify-content:center;align-items:flex-end;}
+.modal-overlay.active{display:flex;}
+.modal-content{background:white;width:100%;max-width:480px;border-top-left-radius:20px;border-top-right-radius:20px;padding:20px;max-height:80vh;overflow-y:auto;}
+.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;}
+.hist-item{border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:10px;background:var(--bg);}
+.hist-badge{font-size:10px;font-weight:700;padding:3px 8px;border-radius:6px;text-transform:uppercase;}
+.hist-badge.env{background:var(--green2);color:var(--green);}
+.hist-badge.pen{background:var(--orange2);color:var(--orange);}
 </style>
 </head>
 <body>
@@ -101,6 +113,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
   <div class="step-dot" id="dot-2">2</div>
   <div class="step-line" id="line-2"></div>
   <div class="step-dot" id="dot-3">3</div>
+</div>
+
+<div class="btn-historial-bar">
+  <button class="btn-historial-trigger" onclick="abrirHistorialModal()">📋 Registros del Día</button>
 </div>
 
 <!-- PAGINA 1 -->
@@ -177,7 +193,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="success-screen" id="success-screen">
   <div class="success-icon">✓</div>
   <h2>¡Visita Registrada!</h2>
-  <p id="success-id-msg">Los datos se han guardado con éxito en Google Sheets.</p>
+  <p id="success-id-msg">Los datos se han guardado con éxito.</p>
   <button class="btn-wa" onclick="abrirWhatsApp()">Enviar Reporte por WhatsApp</button>
   <button class="btn-nueva" onclick="reiniciarFormulario()">Registrar Nueva Visita</button>
 </div>
@@ -186,6 +202,17 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="bottom-nav" id="bottom-nav">
   <button class="btn-back" id="btn-back" onclick="navegar(-1)" style="display:none">Atrás</button>
   <button class="btn-next" id="btn-next" onclick="navegar(1)">Siguiente</button>
+</div>
+
+<!-- MODAL HISTORIAL -->
+<div class="modal-overlay" id="modal-historial">
+  <div class="modal-content">
+    <div class="modal-header">
+      <strong style="color:var(--blue)">📋 Visitas Registradas Hoy</strong>
+      <button onclick="cerrarHistorialModal()" style="border:none;background:none;font-size:18px;cursor:pointer;">✕</button>
+    </div>
+    <div id="historial-lista-container"></div>
+  </div>
 </div>
 
 <div class="toast" id="toast">Aviso</div>
@@ -264,6 +291,7 @@ let hallazgos = [];
 let contadorHallazgos = 0;
 let correlativoGenerado = "";
 let horaInicioVisita = "";
+let reporteActualPayload = null;
 
 function updateClock(){
   const n = new Date();
@@ -280,6 +308,7 @@ function inicializarDatos() {
   poblarTecnicos();
   poblarClientes();
   poblarLocalesDatalist();
+  sincronizarPendientesOffline();
 }
 
 function poblarTecnicos() {
@@ -347,6 +376,7 @@ function alSeleccionarTecnico() {
   }
 }
 
+// CORRELATIVO INCREMENTAL GARANTIZADO (Ej: CP-2601 -> CP-2602)
 function obtenerCorrelativoValido(tecnicoNombre) {
   var codigos = {
     "CARLOS GONZALEZ": "CG",
@@ -356,14 +386,15 @@ function obtenerCorrelativoValido(tecnicoNombre) {
   
   var tecUpper = (tecnicoNombre || "").toUpperCase();
   var prefijo = codigos[tecUpper] || "CG";
-  
   var yearShort = new Date().getFullYear().toString().slice(-2);
-  var key = "correlativo_" + prefijo + "_" + yearShort;
   
-  var contador = parseInt(localStorage.getItem(key) || "0") + 1;
-  localStorage.setItem(key, contador);
+  var key = "contador_visita_" + prefijo + "_" + yearShort;
+  var ultimoNumero = parseInt(localStorage.getItem(key) || "0");
+  var nuevoNumero = ultimoNumero + 1;
   
-  var numFormateado = ("00" + contador).slice(-2);
+  localStorage.setItem(key, nuevoNumero);
+  
+  var numFormateado = ("00" + nuevoNumero).slice(-2);
   return prefijo + "-" + yearShort + numFormateado;
 }
 
@@ -457,7 +488,7 @@ function agregarHallazgo() {
       <div class="field">
         <label>Foto Respaldo</label>
         <div class="foto-mini-area" onclick="document.getElementById('file-${id}').click()">📸 Capturar / Subir Foto</div>
-        <input type="file" id="file-${id}" accept="image/*" capture="environment" style="display:none" onchange="previsualizarFoto(${id})">
+        <input type="file" id="file-${id}" accept="image/*" capture="environment" style="display:none" onchange="previsualizarYComprimirFoto(${id})">
         <img id="prev-${id}" class="foto-preview-element" src="" alt="Previsualización">
       </div>
     </div>
@@ -488,19 +519,45 @@ function setCotiza(id, valor) {
   if(h) h.cotiza = valor;
 }
 
-function previsualizarFoto(id) {
+// COMPRESIÓN AUTOMÁTICA DE FOTOS EN EL NAVEGADOR (~8MB -> ~300KB)
+function previsualizarYComprimirFoto(id) {
   const file = document.getElementById(`file-${id}`).files[0];
   const prev = document.getElementById(`prev-${id}`);
-  if(file) {
-    const reader = new FileReader();
-    reader.onload = function(e) {
-      prev.src = e.target.result;
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const img = new Image();
+    img.onload = function() {
+      const canvas = document.createElement('canvas');
+      let maxDim = 1200;
+      let width = img.width;
+      let height = img.height;
+
+      if (width > height && width > maxDim) {
+        height = Math.round((height * maxDim) / width);
+        width = maxDim;
+      } else if (height > maxDim) {
+        width = Math.round((width * maxDim) / height);
+        height = maxDim;
+      }
+
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, width, height);
+
+      // Compresión JPG al 70%
+      const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+      prev.src = compressedDataUrl;
       prev.style.display = 'block';
+
       const h = hallazgos.find(x => x.id === id);
-      if(h) h.fotoBase64 = e.target.result;
-    }
-    reader.readAsDataURL(file);
-  }
+      if(h) h.fotoBase64 = compressedDataUrl;
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
 }
 
 function showToast(msg) {
@@ -609,6 +666,7 @@ function renderResumen() {
   `;
 }
 
+// CONTROL DE REGISTRO CON MODO OFFLINE E HISTORIAL
 function ejecutarRegistroBackend() {
   document.getElementById('btn-next').textContent = 'Guardando...';
   document.getElementById('btn-next').disabled = true;
@@ -635,46 +693,54 @@ function ejecutarRegistroBackend() {
     hallazgos: hallazgos
   };
 
-  document.getElementById('post-payload').value = JSON.stringify(payloadData);
-  document.getElementById('post-form').submit();
+  reporteActualPayload = payloadData;
 
-  setTimeout(function() {
-    document.getElementById('success-id-msg').textContent = `Visita (${correlativoGenerado}) guardada exitosamente en Google Sheets.`;
-    document.getElementById('steps-nav').style.display = 'none';
-    document.getElementById('bottom-nav').style.display = 'none';
-    document.getElementById('page-3').style.display = 'none';
-    document.getElementById('success-screen').classList.add('active');
-  }, 1500);
+  if (navigator.onLine) {
+    document.getElementById('post-payload').value = JSON.stringify(payloadData);
+    document.getElementById('post-form').submit();
+    guardarEnHistorialLocal(payloadData, true);
+    
+    setTimeout(function() {
+      document.getElementById('success-id-msg').textContent = `Visita (${correlativoGenerado}) guardada exitosamente en Google Sheets.`;
+      finalizarPantallaExito();
+    }, 1200);
+  } else {
+    // Modo Offline por falta de señal
+    guardarEnHistorialLocal(payloadData, false);
+    document.getElementById('success-id-msg').textContent = `Visita (${correlativoGenerado}) guardada localmente por falta de señal. Se sincronizará automáticamente al conectar.`;
+    finalizarPantallaExito();
+  }
 }
 
-// PUNTO 4: FORMATO OPTIMIZADO DE TEXTO PARA WHATSAPP
-function abrirWhatsApp() {
-  const tec = document.getElementById('tecnico-select').value;
-  const cli = document.getElementById('cliente-select').value;
-  const cliUpper = cli.toUpperCase();
-  const esMcd = cliUpper.includes('MCD') || cliUpper.includes('DONALD');
-  const loc = esMcd ? document.getElementById('local-value').value : document.getElementById('local-ext').value;
-  const tip = document.getElementById('tipo-visita').value;
-  const horaTermino = document.getElementById('hdr-hora').textContent;
-  const observ = document.getElementById('observaciones-input').value.trim();
+function finalizarPantallaExito() {
+  document.getElementById('steps-nav').style.display = 'none';
+  document.getElementById('bottom-nav').style.display = 'none';
+  document.getElementById('page-3').style.display = 'none';
+  document.getElementById('success-screen').classList.add('active');
+}
+
+// FORMATO DE WHATSAPP OPTIMIZADO
+function abrirWhatsApp(payloadOpcional) {
+  const p = payloadOpcional || reporteActualPayload;
+  if (!p) return;
 
   let texto = `*INFORME DE VISITA TÉCNICA*\n`;
   texto += `*AS Y AS CONSTRUCCIONES*\n`;
   texto += `═════════════════════\n\n`;
   
-  if (correlativoGenerado) {
-    texto += `*N° REGISTRO:* ${correlativoGenerado}\n`;
+  if (p.correlativo) {
+    texto += `*N° REGISTRO:* ${p.correlativo}\n`;
   }
-  texto += `*TÉCNICO:* ${tec}\n`;
-  texto += `*CLIENTE:* ${cli}\n`;
-  texto += `*UBICACIÓN:* ${loc}\n`;
-  texto += `*TIPO VISITA:* ${tip}\n`;
-  texto += `*INICIO / TÉRMINO:* ${horaInicioVisita} - ${horaTermino} hrs\n\n`;
+  texto += `*TÉCNICO:* ${p.tecnico}\n`;
+  texto += `*CLIENTE:* ${p.cliente}\n`;
+  texto += `*UBICACIÓN:* ${p.local}\n`;
+  texto += `*TIPO VISITA:* ${p.tipo}\n`;
+  texto += `*INICIO / TÉRMINO:* ${p.horaInicio} - ${p.horaTermino} hrs\n\n`;
   
   texto += `*HALLAZGOS Y NOVEDADES:*\n`;
   texto += `─────────────────────\n`;
 
-  hallazgos.forEach((h, idx) => {
+  p.hallazgos.forEach((h, idx) => {
     texto += `*Item #${idx + 1}*\n`;
     texto += `• *Área / Zona:* ${h.area || 'General'}\n`;
     if (h.equipo) texto += `• *Equipo:* ${h.equipo}\n`;
@@ -685,9 +751,9 @@ function abrirWhatsApp() {
     texto += `\n`;
   });
 
-  if (observ) {
+  if (p.observ && p.observ.trim().length > 0) {
     texto += `*OBSERVACIONES GENERALES:*\n`;
-    texto += `${observ}\n\n`;
+    texto += `${p.observ}\n\n`;
   }
 
   texto += `═════════════════════\n`;
@@ -697,11 +763,82 @@ function abrirWhatsApp() {
   window.open(`https://wa.me/${nroCentral}?text=${encodeURIComponent(texto)}`, '_blank');
 }
 
+// GESTIÓN DEL HISTORIAL Y SINCRONIZACIÓN OFFLINE
+function guardarEnHistorialLocal(payload, sincronizado) {
+  let historial = JSON.parse(localStorage.getItem("historial_visitas_hoy") || "[]");
+  historial.unshift({ payload: payload, sincronizado: sincronizado, timestamp: new Date().getTime() });
+  localStorage.setItem("historial_visitas_hoy", JSON.stringify(historial.slice(0, 15)));
+}
+
+function sincronizarPendientesOffline() {
+  if (!navigator.onLine) return;
+  let historial = JSON.parse(localStorage.getItem("historial_visitas_hoy") || "[]");
+  let huboCambio = false;
+
+  historial.forEach(item => {
+    if (!item.sincronizado) {
+      document.getElementById('post-payload').value = JSON.stringify(item.payload);
+      document.getElementById('post-form').submit();
+      item.sincronizado = true;
+      huboCambio = true;
+    }
+  });
+
+  if (huboCambio) {
+    localStorage.setItem("historial_visitas_hoy", JSON.stringify(historial));
+    showToast("🟢 Visitas pendientes sincronizadas");
+  }
+}
+
+window.addEventListener('online', sincronizarPendientesOffline);
+
+function abrirHistorialModal() {
+  const modal = document.getElementById('modal-historial');
+  const container = document.getElementById('historial-lista-container');
+  let historial = JSON.parse(localStorage.getItem("historial_visitas_hoy") || "[]");
+
+  if (historial.length === 0) {
+    container.innerHTML = '<p style="font-size:13px; color:var(--muted); text-align:center; padding:20px;">No hay registros guardados hoy.</p>';
+  } else {
+    let html = '';
+    historial.forEach((item, idx) => {
+      const p = item.payload;
+      html += `
+        <div class="hist-item">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <strong>${p.correlativo}</strong>
+            <span class="hist-badge ${item.sincronizado ? 'env' : 'pen'}">${item.sincronizado ? 'Enviado' : 'Pendiente'}</span>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-top:4px;">
+            ${p.cliente} - ${p.local}<br>
+            Hora: ${p.horaTermino} hrs
+          </div>
+          <button onclick='abrirWhatsAppFromHistorial(${idx})' style="margin-top:8px; width:100%; padding:6px; background:#25D366; color:white; border:none; border-radius:6px; font-weight:700; font-size:11px; cursor:pointer;"> Reenviar WhatsApp</button>
+        </div>
+      `;
+    });
+    container.innerHTML = html;
+  }
+  modal.classList.add('active');
+}
+
+function cerrarHistorialModal() {
+  document.getElementById('modal-historial').classList.remove('active');
+}
+
+function abrirWhatsAppFromHistorial(idx) {
+  let historial = JSON.parse(localStorage.getItem("historial_visitas_hoy") || "[]");
+  if (historial[idx]) {
+    abrirWhatsApp(historial[idx].payload);
+  }
+}
+
 function reiniciarFormulario() {
   paginaActual = 1;
   pinVerificado = false;
   hallazgos = [];
   contadorHallazgos = 0;
+  reporteActualPayload = null;
   
   document.getElementById('tecnico-select').value = '';
   document.getElementById('cliente-select').value = '';

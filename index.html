@@ -218,12 +218,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min
 <div class="toast" id="toast">Aviso</div>
 
 <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-<form id="post-form" action="https://script.google.com/macros/s/AKfycbx8nwjUxOrWf5vcwBYAsPcB5FKrFm1QJlJ2oXzCbyIqZ4RAF0B8qesaumAwlI9bFUzg/exec" method="POST" target="hidden_iframe" style="display:none;">
+<form id="post-form" action="https://script.google.com/macros/s/AKfycbweaoAQEXHjjR0UgMvC_Xy2Sz1RyqVsFLhXXlMYPlPiPWc9ZX9UYAhi6TT24r7drKG6/exec" method="POST" target="hidden_iframe" style="display:none;">
   <input type="hidden" name="payload" id="post-payload">
 </form>
 
 <script>
-const API_URL = "https://script.google.com/macros/s/AKfycbx8nwjUxOrWf5vcwBYAsPcB5FKrFm1QJlJ2oXzCbyIqZ4RAF0B8qesaumAwlI9bFUzg/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbweaoAQEXHjjR0UgMvC_Xy2Sz1RyqVsFLhXXlMYPlPiPWc9ZX9UYAhi6TT24r7drKG6/exec";
 
 let bdTecnicos = [
   { nombre: "CARLOS GONZALEZ", pin: "1994", codigo: "CG" },
@@ -376,7 +376,7 @@ function alSeleccionarTecnico() {
   }
 }
 
-// CORRELATIVO INCREMENTAL GARANTIZADO (Ej: CP-2601 -> CP-2602)
+// CORRELATIVO INCREMENTAL GARANTIZADO
 function obtenerCorrelativoValido(tecnicoNombre) {
   var codigos = {
     "CARLOS GONZALEZ": "CG",
@@ -519,7 +519,7 @@ function setCotiza(id, valor) {
   if(h) h.cotiza = valor;
 }
 
-// COMPRESIÓN AUTOMÁTICA DE FOTOS EN EL NAVEGADOR (~8MB -> ~300KB)
+// COMPRESIÓN AUTOMÁTICA DE FOTOS EN EL NAVEGADOR
 function previsualizarYComprimirFoto(id) {
   const file = document.getElementById(`file-${id}`).files[0];
   const prev = document.getElementById(`prev-${id}`);
@@ -547,7 +547,6 @@ function previsualizarYComprimirFoto(id) {
       const ctx = canvas.getContext('2d');
       ctx.drawImage(img, 0, 0, width, height);
 
-      // Compresión JPG al 70%
       const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
       prev.src = compressedDataUrl;
       prev.style.display = 'block';
@@ -666,7 +665,7 @@ function renderResumen() {
   `;
 }
 
-// CONTROL DE REGISTRO CON MODO OFFLINE E HISTORIAL
+// CONTROL DE REGISTRO
 function ejecutarRegistroBackend() {
   document.getElementById('btn-next').textContent = 'Guardando...';
   document.getElementById('btn-next').disabled = true;
@@ -705,7 +704,6 @@ function ejecutarRegistroBackend() {
       finalizarPantallaExito();
     }, 1200);
   } else {
-    // Modo Offline por falta de señal
     guardarEnHistorialLocal(payloadData, false);
     document.getElementById('success-id-msg').textContent = `Visita (${correlativoGenerado}) guardada localmente por falta de señal. Se sincronizará automáticamente al conectar.`;
     finalizarPantallaExito();
@@ -719,7 +717,7 @@ function finalizarPantallaExito() {
   document.getElementById('success-screen').classList.add('active');
 }
 
-// FORMATO DE WHATSAPP OPTIMIZADO
+// WHATSAPP OPTIMIZADO
 function abrirWhatsApp(payloadOpcional) {
   const p = payloadOpcional || reporteActualPayload;
   if (!p) return;
@@ -763,7 +761,6 @@ function abrirWhatsApp(payloadOpcional) {
   window.open(`https://wa.me/${nroCentral}?text=${encodeURIComponent(texto)}`, '_blank');
 }
 
-// GESTIÓN DEL HISTORIAL Y SINCRONIZACIÓN OFFLINE
 function guardarEnHistorialLocal(payload, sincronizado) {
   let historial = JSON.parse(localStorage.getItem("historial_visitas_hoy") || "[]");
   historial.unshift({ payload: payload, sincronizado: sincronizado, timestamp: new Date().getTime() });
